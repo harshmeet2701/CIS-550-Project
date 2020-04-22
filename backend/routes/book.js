@@ -3,26 +3,26 @@ const router = express.Router();
 // const jwt = require("jsonwebtoken");
 const connection = require('../models/database');
 
-router.get('/', (req, res) => getBooks(req,res));
-router.get('/search/title/:title', (req, res) => getBookForTitle(req,res));
-router.get('/search/isbn/:isbn', (req, res) => getBookForIsbn(req,res));
-router.get('/search/author/:author', (req, res) => getBookForAuthor(req,res));
-router.get('/recommended/topRated', (req, res) => getTopRatedBooks(req,res));
-router.get('/recommended/ages', (req, res) => getAges(req,res));
-router.get('/recommended/ages/:age', (req, res) => getForAge(req,res));
-router.get('/bestseller/publishing', (req, res) => getTopNYPublishing(req,res));
-router.get('/bestseller/authors', (req, res) => getTopNYAuthors(req,res));
-router.get('/bestseller/rank', (req, res) => getTopNYRank(req,res));
-router.get('/bestseller/new', (req, res) => getNewNY(req,res));
-router.get('/movies/:bestseller', (req, res) => getMoviesThatBestSeller(req,res));
-router.get('/categories', (req, res) => getTopCategories(req,res));
-router.get('/categories/nyauthor/:categoryName', (req, res) => getTopCategoryAuthorNY(req,res));
-router.get('/categories/publisher/:categoryName', (req, res) => getTopCategoryPublisher(req,res));
-router.get('/categories/topRated/:categoryName', (req, res) => getTopCategoryRated(req,res));
-router.get('/movies', (req, res) => getMovies(req,res));
+router.get('/', (req, res) => getBooks(req, res));
+router.get('/search/title/:title', (req, res) => getBookForTitle(req, res));
+router.get('/search/isbn/:isbn', (req, res) => getBookForIsbn(req, res));
+router.get('/search/author/:author', (req, res) => getBookForAuthor(req, res));
+router.get('/recommended/topRated', (req, res) => getTopRatedBooks(req, res));
+router.get('/recommended/ages', (req, res) => getAges(req, res));
+router.get('/recommended/ages/:age', (req, res) => getForAge(req, res));
+router.get('/bestseller/publishing', (req, res) => getTopNYPublishing(req, res));
+router.get('/bestseller/authors', (req, res) => getTopNYAuthors(req, res));
+router.get('/bestseller/rank', (req, res) => getTopNYRank(req, res));
+router.get('/bestseller/new', (req, res) => getNewNY(req, res));
+router.get('/movies/:bestseller', (req, res) => getMoviesThatBestSeller(req, res));
+router.get('/categories', (req, res) => getTopCategories(req, res));
+router.get('/categories/nyauthor/:categoryName', (req, res) => getTopCategoryAuthorNY(req, res));
+router.get('/categories/publisher/:categoryName', (req, res) => getTopCategoryPublisher(req, res));
+router.get('/categories/topRated/:categoryName', (req, res) => getTopCategoryRated(req, res));
+router.get('/movies', (req, res) => getMovies(req, res));
 
 
-function getBooks(req,res) {
+function getBooks(req, res) {
   console.log('READ all users');
 
   connection.then((con) => {
@@ -31,7 +31,7 @@ function getBooks(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 /**
@@ -40,39 +40,69 @@ function getBooks(req,res) {
  * 2) by isbn
  * 3) by author name
  */
-function getBookForTitle(req,res) {
+function getBookForTitle(req, res) {
 
   connection.then((con) => {
-    const sql = 'select * from Books WHERE ROWNUM < 10';
+    var searchValue = req.params.title;
+    console.log(searchValue);
+    const sql = `SELECT DISTINCT books.isbn, books.title, author.authorname, authorwiki.wikiurl, books.img_url, books.description 
+    from Books
+    inner join bookauthor
+    on books.isbn = bookauthor.isbn
+    inner join author
+    on bookauthor.authorid = author.authorid
+    left join authorwiki ON authorwiki.authorid=author.authorid
+    where lower(books.title) like '%${searchValue}%'
+    AND rownum <=15`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
-function getBookForIsbn(req,res) {
-
+function getBookForIsbn(req, res) {
+  var searchValue = req.params.isbn;
+  console.log(searchValue);
   connection.then((con) => {
-    const sql = 'FILL';
+    const sql = `SELECT books.*, author.authorname, authorwiki.wikiurl
+    from Books
+    inner join bookauthor
+    on books.isbn = bookauthor.isbn
+    inner join author
+    on bookauthor.authorid = author.authorid
+    left join authorwiki
+    on authorwiki.authorid=author.authorid
+    where books.isbn like '${searchValue}'`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
-function getBookForAuthor(req,res) {
-
+function getBookForAuthor(req, res) {
+  // var searchValue = req.params.author;
+  var searchValue = 'harry';
+  console.log(searchValue);
   connection.then((con) => {
-    const sql = 'FILL';
+    const sql = `SELECT books.*, author.authorname, authorwiki.wikiurl
+    from Books
+    inner join bookauthor
+    on books.isbn = bookauthor.isbn
+    inner join author
+    on bookauthor.authorid = author.authorid
+    left join authorwiki
+    on authorwiki.authorid=author.authorid
+    where lower(author.authorName) like '${searchValue}'
+    AND rownum <= 15`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 /**
@@ -80,7 +110,7 @@ function getBookForAuthor(req,res) {
  *  by users. Retrieves all books that fall between the maximum rating and maximum rating -1 
  * for the entire books dataset/database
  */
-function getTopRatedBooks(req,res) {
+function getTopRatedBooks(req, res) {
 
   connection.then((con) => {
     // console.log(con);
@@ -89,7 +119,7 @@ function getTopRatedBooks(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
@@ -98,7 +128,7 @@ function getTopRatedBooks(req,res) {
  * Given age group, retrieve all books that are suitable for the chosen age group sorted by rating in descending 
  * order and in alphabetical ordering by title.
  */
-function getAges(req,res) {
+function getAges(req, res) {
 
   connection.then((con) => {
     // console.log(con);
@@ -107,11 +137,11 @@ function getAges(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
-function getForAge(req,res) {
+function getForAge(req, res) {
 
   connection.then((con) => {
     const sql = 'FILL';
@@ -119,7 +149,7 @@ function getForAge(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 /**
  * 6) Displays the top 10 bestselling publishing houses determined using the 
@@ -127,7 +157,7 @@ function getForAge(req,res) {
  * NYTimes bestseller list sorted by the weeks on list.
  *want recommendations or in bestsellings section?
  */
-function getTopNYPublishing(req,res) {
+function getTopNYPublishing(req, res) {
 
   connection.then((con) => {
     const sql = 'FILL';
@@ -135,7 +165,7 @@ function getTopNYPublishing(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
@@ -144,16 +174,16 @@ function getTopNYPublishing(req,res) {
  * 7)Displays the best selling books of the top 10 best selling authors on the NYTimes best seller list 
  * (based on their number of bestsellers) sorted by their ranks
  */
-function getTopNYAuthors(req,res) {
+function getTopNYAuthors(req, res) {
 
   connection.then((con) => {
-    const sql =` FILL` 
-    ;
+    const sql = ` FILL`
+      ;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
@@ -162,7 +192,7 @@ function getTopNYAuthors(req,res) {
  * 8)Displays all number 1 ranked books on the NYTimes best seller list
  * 
  */
-function getTopNYRank(req,res) {
+function getTopNYRank(req, res) {
 
   connection.then((con) => {
     const sql = 'FILL';
@@ -170,7 +200,7 @@ function getTopNYRank(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
@@ -178,7 +208,7 @@ function getTopNYRank(req,res) {
  * 9)Displays newer books on the NYTimesBest selling list. A book is new if it was not present on the list in the last week.
  * 
  */
-function getNewNY(req,res) {
+function getNewNY(req, res) {
 
   connection.then((con) => {
     const sql = 'FILL';
@@ -186,7 +216,7 @@ function getNewNY(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
@@ -194,7 +224,7 @@ function getNewNY(req,res) {
 /**
  * movies which were adapted from a bestseller book
  */
-function getMoviesThatBestSeller(req,res) {
+function getMoviesThatBestSeller(req, res) {
 
   connection.then((con) => {
     const sql = 'FILL';
@@ -202,14 +232,14 @@ function getMoviesThatBestSeller(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
 /**
  * Display based on category name- how to create sub section on a page
  */
-function getTopCategories(req,res) {
+function getTopCategories(req, res) {
 
   connection.then((con) => {
     const sql = ` WITH temp AS (SELECT Books.isbn, BookCategory.categoryId FROM
@@ -228,7 +258,7 @@ function getTopCategories(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
@@ -239,7 +269,7 @@ function getTopCategories(req,res) {
   along with the wiki URL for the authors displayed.
  * 
  */
-function getTopCategoryAuthorNY(req,res) {
+function getTopCategoryAuthorNY(req, res) {
   var inputcategory = req.params.categoryName;
   console.log(inputcategory);
   connection.then((con) => {
@@ -283,12 +313,12 @@ function getTopCategoryAuthorNY(req,res) {
     (SELECT categoryId FROM category
     WHERE categoryName LIKE '${inputcategory}')
     WHERE ROWNUM <20`
-    ;
+      ;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
@@ -298,7 +328,7 @@ function getTopCategoryAuthorNY(req,res) {
  *  are highly rated by users
  * 
  */
-function getTopCategoryRated(req,res) {
+function getTopCategoryRated(req, res) {
   var inputcategory = req.params.categoryName;
   console.log(inputcategory);
   connection.then((con) => {
@@ -318,7 +348,7 @@ function getTopCategoryRated(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 
@@ -328,9 +358,9 @@ function getTopCategoryRated(req,res) {
  * along with the wiki URL of the authors displayed
  * 
  */
-function getTopCategoryPublisher(req,res) {
+function getTopCategoryPublisher(req, res) {
   var inputcategory = req.params.categoryName;
-  console.log("in publisher" +inputcategory);
+  console.log("in publisher" + inputcategory);
   connection.then((con) => {
     const sql = ` WITH PublishersTemp AS
     (
@@ -374,13 +404,13 @@ function getTopCategoryPublisher(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 /**
  * 20)display movies adapted from books
  */
-function getMovies(req,res) {
+function getMovies(req, res) {
 
   connection.then((con) => {
     const sql = 'FILL';
@@ -388,7 +418,7 @@ function getMovies(req,res) {
       console.log(response);
       res.json(response);
     })
-  });  
+  });
 }
 
 

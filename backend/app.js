@@ -24,7 +24,7 @@ webapp.use((req, res, next) => {
   next();
 });
 
-webapp.use("/api/book", bookRoutes);
+webapp.use("/book", bookRoutes);
 // webapp.use('/api/post',postRoutes);
 
 module.exports = webapp;
