@@ -203,27 +203,27 @@ export default function Search() {
         if (!bookList) return;
         // Map each categoryObj in searchList to an HTML element:
         // A button which triggers the showAllsections function for each genre.
-        console.log(bookList);
 
-        let bookDivs = bookList.map((bookVal, i) => 
-          alert('Harry is coming' + bookVal.isbn),
-          < Grid item key={bookVal.isbn} xs={12} sm={6} md={4} >
+        let bookDivs = bookList.rows.map((book, i) => (
+          // <Button variant="contained" onClick={() => callAllSections(bookName)}>{bookName}</Button>
+          console.log(book[4]),
+          < Grid item key={book.isbn} xs={12} sm={6} md={4} >
             <Card className={classes.card}>
-              {/* <CardMedia
+              <CardMedia
                 className={classes.cardMedia}
-                // image={book.img_url}
-              /> */}
+                image={book[4]}
+              />
               <CardContent className={classes.cardContent}>
                 <Typography gutterBottom variant="h5" component="h2">
-                  {bookVal.title}
+                  {book[1]}
                 </Typography>
                 <Typography>
-                  {bookVal.description}
+                  {book[5]}
                 </Typography>
               </CardContent>
               <CardActions>
                 <Button size="small" color="primary">
-                  {bookVal.wikiurl}
+                  {book[3]}
                 </Button>
                 <Button size="small" color="primary">
                   Edit
@@ -231,7 +231,7 @@ export default function Search() {
               </CardActions>
             </Card>
           </Grid >
-        );
+        ));
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
         setBooks(
@@ -253,6 +253,12 @@ export default function Search() {
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
           <SearchBar
+            onChange={() => console.log('onChange')}
+            onRequestSearch={() => console.log('onRequestSearch')}
+            style={{
+              margin: '0 auto',
+              maxWidth: 800
+            }}
           />
         </Container>
         <Container className={classes.cardGrid} maxWidth="md">

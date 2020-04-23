@@ -44,7 +44,6 @@ function getBookForTitle(req, res) {
 
   connection.then((con) => {
     var searchValue = req.params.title;
-    console.log(searchValue);
     const sql = `SELECT DISTINCT books.isbn, books.title, author.authorname, authorwiki.wikiurl, books.img_url, books.description 
     from Books
     inner join bookauthor
