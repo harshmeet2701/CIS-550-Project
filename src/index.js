@@ -3,11 +3,35 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './components/App';
 import * as serviceWorker from './serviceWorker';
+import {createStore} from 'redux';
+import allReducer from './reducers';
+import { Provider } from 'react-redux';
+
+const loadState = () => {
+
+  const sessionObj = sessionStorage.getItem('sessionObject');
+
+  if(sessionObj) {
+    const email = JSON.parse(sessionObj).email;
+    const state = {auth:{auth: email}};
+
+    return state
+  }else {
+    return ""
+  }
+}
+
+const store = createStore(allReducer, loadState(),
+  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+  );
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+    <Provider store = {store}>
+      <App />
+    </Provider>
+  </React.StrictMode>
+  ,
   document.getElementById('root')
 );
 

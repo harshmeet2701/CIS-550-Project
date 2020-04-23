@@ -3,17 +3,15 @@ import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
 import Link from '@material-ui/core/Link';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
+import LockOpenIcon from '@material-ui/icons/LockOpen';
 import Typography from '@material-ui/core/Typography';
-import {makeStyles} from '@material-ui/core/styles';
-import Container from '@material-ui/core/Container';
+import { makeStyles } from '@material-ui/core/styles';
 import {useState} from 'react';
 import { Redirect } from 'react-router-dom';
+import Container from '@material-ui/core/Container';
 import Dailog from './Dailog';
 
 function Copyright() {
@@ -49,19 +47,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function SignUp(props) {
+export default function ForgetPassword() {
   const classes = useStyles();
-  const [checked, setChecked] = useState(false);
-  const [firstName, setfirstName] = useState("");
-  const [lastName, setlastName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmpassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); 
-  const [redirect, setRedirect] = useState(false);
-
-  //For Dailog
   const [open, setOpen] = useState(false);
+  const [redirect, setRedirect] = useState(false);
   const [dailogContent, setDailogContent] = useState("");
   const [dailogTitle, setDailogTitle] = useState("");
+  const [open2, setOpen2] = useState(false);
 
   const handleChange = (event) => {
     const target_name = event.target.name;
@@ -69,129 +64,115 @@ export default function SignUp(props) {
     
     const valid = event.target.checkValidity();
 
-    if(target_name === 'firstName') {
-      
-      if (valid === true) {
-        setfirstName(target_value);
-      }
-    } else if(target_name === 'lastName') {
-      
-      if (valid === true) {
-       setlastName(target_value);
-      }
-
-    } else if(target_name === 'email') {
-
-      if (valid === true) {
-        setEmail(target_value);
-      }
-
-    } else if(target_name === 'password') {
+    if(target_name === 'password') {
 
       if (valid === true) {
         setPassword(target_value);
         // setValue({password: target_value});
       }
-    }
+    }else if(target_name === 'confirmpassword') {
 
-    // console.log(value);
-    console.log(target_name);
-    console.log(target_value);
+      if (valid === true) {
+        setConfirmPassword(target_value);
+        // setValue({password: target_value});
+      }
+    }else if(target_name === 'email'){
+      if (valid === true) {
+        setEmail(target_value);
+        // setValue({password: target_value});
+      }
+    }
   }
 
   const handleSubmit = (event) => {
-    
     event.preventDefault();
-    console.log(email, password, firstName, lastName);
-    const jsonObject = {email, password, firstName, lastName};
-    console.log(jsonObject);
+    console.log(email, password, confirmpassword);
 
-    fetch('http://localhost:8081/api/user/register', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'    
-      },
-      body:JSON.stringify({email, password, firstName, lastName})
-    })
-    .then(resp => resp.json())
-    .then(resp => {
-      if(resp.message === 'success') {
-        // Navigate to Sign in
-       setRedirect(true);
-
-      }else {
-        // Popup a Dailog of User Already exists
-        setDailogTitle("User Already exits");
-        setDailogContent('Use another email account, this email already exits. If you dont remember the password click on forgot password in Sign In')
-        setOpen(true);
-      }
-    })
-    .catch(err => {
-      console.log(err);
-    });
-
-  }
-
-  const handleCheck = (event) => {
-    setChecked(event.target.checked);
+    if ( password !== confirmpassword ) {
+      // Raise a dailog
+      setDailogTitle("Password Mismatch");
+      setDailogContent('Password and Confirm Password does not match')
+      setOpen(true);
+    }else {
+      
+      fetch('http://localhost:8081/api/user/changePassword', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'    
+        },
+        body:JSON.stringify({email, password})
+      })
+      .then(resp => resp.json())
+      .then(resp => {
+        if(resp.message === 'success') {
+          // Navigate to Sign in
+          setDailogTitle("Password Change Successfully");
+          setDailogContent('')
+          setOpen2(true);
+          // alert('Password Changed Successfully');    
+        }else {
+          // Dailog for Password Change Failed
+          setDailogTitle("Password Change Failed");
+          setDailogContent('Invalid Email or Password entered')
+          setOpen(true);
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
+    }
   }
 
   const handleClose = () => {
     setOpen(false);
-  }
+  };
 
-  if(redirect){
+  const handleClose2 = () => {
+    setOpen2(false);
+    setRedirect(true);
+  };
+
+  if(redirect) {
     return <Redirect to={'/'} />
-  }else{
+  }else {
 
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
       <div className={classes.paper}>
         <Avatar className={classes.avatar}>
-          <LockOutlinedIcon />
+          <LockOpenIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
-          Sign up
+          Password Change
         </Typography>
-        <form className={classes.form} onSubmit={handleSubmit} method= "POST">
+        <form className={classes.form} method="POST" onSubmit={handleSubmit}>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                autoComplete="fname"
-                name="firstName"
-                variant="outlined"
-                required
-                fullWidth
-                id="firstName"
-                label="First Name"
-                autoFocus
-                onBlur = {handleChange} 
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+          <Grid item xs={12}>
               <TextField
                 variant="outlined"
                 required
-                fullWidth
-                id="lastName"
-                label="Last Name"
-                name="lastName"
-                autoComplete="lname"
-                onBlur = {handleChange} 
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                variant="outlined"
-                required
-                type = "email"
                 fullWidth
                 id="email"
-                label="Email Address"
+                label="Email"
                 name="email"
                 autoComplete="email"
+                type="email"
+                onBlur = {handleChange} 
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                variant="outlined"
+                required
+                fullWidth
+                id="password"
+                label="New Password"
+                name="password"
+                autoComplete="password"
+                type="password"
                 onBlur = {handleChange} 
               />
             </Grid>
@@ -200,18 +181,12 @@ export default function SignUp(props) {
                 variant="outlined"
                 required
                 fullWidth
-                name="password"
-                label="Password"
+                name="confirmpassword"
+                label="Confirm Password"
                 type="password"
-                id="password"
-                autoComplete="current-password"
+                id="confirmpassword"
+                autoComplete="confirm-password"
                 onBlur = {handleChange} 
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={<Checkbox value="allowExtraEmails" color="primary" checked = {checked} onChange = {handleCheck}/>}
-                label="I accept Terms and Conditions"
               />
             </Grid>
           </Grid>
@@ -221,18 +196,18 @@ export default function SignUp(props) {
             variant="contained"
             color="primary"
             className={classes.submit}
-            disabled= {!checked}
           >
-            Sign Up
+            Change
           </Button>
           <Dailog open = {open} title = {dailogTitle} content = {dailogContent} handleClose = {handleClose}/>  
+          <Dailog open = {open2} title = {dailogTitle} content = {dailogContent} handleClose = {handleClose2}/>   
           <Grid container justify="flex-end">
             <Grid item>
               <Link href="/" variant="body2">
                 Already have an account? Sign in
               </Link>
             </Grid>
-          </Grid>
+          </Grid>         
         </form>
       </div>
       <Box mt={5}>

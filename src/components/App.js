@@ -8,6 +8,8 @@ import Search from './Search';
 import BestSeller from './BestSeller';
 import Movies from './Movies';
 import Categories from './Categories';
+import ForgetPassword from './ForgetPassword';
+import {UserProvider} from './UserContext';
 
 function App() {
   return (
@@ -18,7 +20,9 @@ function App() {
 							exact
 							path="/"
 							render={() => (
-								<SignIn />
+								<UserProvider>
+									<SignIn />
+								</UserProvider>
 							)}
 						/>
 
@@ -26,7 +30,9 @@ function App() {
 							exact
 							path="/signup"
 							render={() => (
-								<SignUp />
+								<UserProvider>
+									<SignUp />
+								</UserProvider>
 							)}
 						/>
 
@@ -75,6 +81,14 @@ function App() {
 							path="/categories"
 							render={() => (
 								<Categories />
+							)}
+						/>
+
+						<Route
+							exact
+							path="/forgetpassword"
+							render={() => (
+								<ForgetPassword />
 							)}
 						/>
 

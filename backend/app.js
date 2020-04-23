@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const bookRoutes = require("./routes/book");
+const userRoutes = require("./routes/user");
 const webapp = express();
 
 // parse application/x-www-form-urlencoded
@@ -24,7 +25,7 @@ webapp.use((req, res, next) => {
   next();
 });
 
-webapp.use("/book", bookRoutes);
-// webapp.use('/api/post',postRoutes);
+webapp.use("/api/book", bookRoutes);
+webapp.use('/api/user',userRoutes);
 
 module.exports = webapp;

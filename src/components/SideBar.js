@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -9,10 +9,18 @@ import List from '@material-ui/core/List';
 import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
-import Link from '@material-ui/core/Link';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import { mainListItems, secondaryListItems } from './listItems';
+import {useSelector} from 'react-redux';
+import { Redirect } from 'react-router-dom';
+import ListSubheader from '@material-ui/core/ListSubheader';
+import ListItem from '@material-ui/core/ListItem';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import AccountCircleIcon from '@material-ui/icons/AccountCircle';
+import ListItemText from '@material-ui/core/ListItemText';
+import {NavLink} from 'react-router-dom';
 
 const drawerWidth = 240;
 
@@ -98,14 +106,98 @@ const useStyles = makeStyles((theme) => ({
 export default function SideBar(props) {
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
+  const auth = useSelector(state => state.auth);
+  const [status, setStatus] = React.useState(false);
+  const [redirect, setRedirect] = React.useState(false);
+
+  useEffect(()=> {
+    let sessionObj = sessionStorage.getItem('sessionObject');
+    let cacheObj = localStorage.getItem('cacheObject');
+
+    if(sessionObj) {
+      sessionObj = JSON.parse(sessionStorage.getItem('sessionObject'));
+      var session_cur_date = new Date();
+      var session_expirationDate = sessionObj.expiresAt;
+      if(Date.parse(session_expirationDate) > Date.parse(session_cur_date)){
+        setStatus(true);
+      }else {
+        sessionStorage.removeItem('sessionObject');
+      }
+    } else if(cacheObj) {
+      cacheObj = JSON.parse(localStorage.getItem('cacheObject'));
+      var cache_cur_date = new Date();
+      var cache_expirationDate = cacheObj.expiresAt;
+      if(Date.parse(cache_expirationDate) > Date.parse(cache_cur_date)){
+        setStatus(true);
+      } else {
+        localStorage.removeItem('cacheObject');
+      } 
+    }else {
+      setStatus(false);
+      setRedirect(true);
+    }
+  });
+
   const handleDrawerOpen = () => {
     setOpen(true);
   };
   const handleDrawerClose = () => {
     setOpen(false);
   };
-  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+  const logout = () => {
+    let sessionObj = sessionStorage.getItem('sessionObject');
+    let cacheObj = localStorage.getItem('cacheObject');
 
+    if(sessionObj) {
+      sessionStorage.removeItem('sessionObject');
+    }
+
+    if(cacheObj) {
+      localStorage.removeItem('cacheObject');
+    }
+
+    setRedirect(true);
+  }
+  console.log(auth);
+  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+  var personalItem = "";
+
+  if(auth.auth != "") {
+    personalItem = 
+    <React.Fragment>
+      <ListSubheader inset>Profile Settings</ListSubheader>
+      
+      <ListItem>
+        <ListItemIcon>
+          <AccountCircleIcon />
+        </ListItemIcon>
+        <ListItemText primary= {auth.auth} secondary= 'Email Address'  />
+      </ListItem>
+
+      <ListItem button>
+        <ListItemIcon>
+          <ExitToAppIcon />
+        </ListItemIcon>
+        <ListItemText primary="Log Out" onClick = {logout} />
+      </ListItem>
+    </React.Fragment>
+  }else {
+    //
+    personalItem = 
+    <React.Fragment>
+      <ListSubheader inset>Not Logged In</ListSubheader>
+      <ListItem button component={NavLink} to='/' exact>
+        <ListItemIcon>
+          <ExitToAppIcon />
+        </ListItemIcon>
+        <ListItemText primary="Log In"/>
+      </ListItem>
+    </React.Fragment>
+  }
+
+  if(redirect) {
+    return <Redirect to={'/'}/>
+  }else {
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -145,8 +237,9 @@ export default function SideBar(props) {
         <Divider />
         <List>{mainListItems}</List>
         <Divider />
-        <List>{secondaryListItems}</List>
+        <List>{personalItem}</List>
       </Drawer>
       </div>
   );
+}
 }
