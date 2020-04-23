@@ -193,7 +193,7 @@ export default function Categories() {
     
       console.log(nybookList);
      let nybookDivs= nybookList.rows.map( nybookItem => (
-        <Button variant="contained" >{nybookItem}</Button>
+        <Button variant="contained" >{nybookItem[1]}</Button>
       ));
   
     //   // Set the state of the genres list to the value returned by the HTTP response from the server.
@@ -224,7 +224,7 @@ export default function Categories() {
       // A button which triggers the showMovies function for each genre.
       console.log("lis:"+publisherBookList);
      let publisherBookDivs= publisherBookList.rows.map( publisherBookItem => (
-        <Button variant="contained" >{publisherBookItem}</Button>
+        <Button variant="contained" >{publisherBookItem[1]}</Button>
       ));
   
     //   // Set the state of the genres list to the value returned by the HTTP response from the server.
@@ -253,7 +253,7 @@ export default function Categories() {
       // A button which triggers the showMovies function for each genre.
       console.log(ratedBookList);
      let ratedBookDivs= ratedBookList.rows.map( ratedBookItem => (
-        <Button variant="contained" >{ratedBookItem}</Button>
+        <Button variant="contained" >{ratedBookItem[2]}</Button>
       ));
   
     //   // Set the state of the genres list to the value returned by the HTTP response from the server.
