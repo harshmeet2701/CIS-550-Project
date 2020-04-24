@@ -16,6 +16,10 @@ import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import TextField from '@material-ui/core/TextField';
+import { sizing } from '@material-ui/system';
+
 // import Chart from './Chart';
 // import Deposits from './Deposits';
 // import Orders from './Orders';
@@ -218,7 +222,16 @@ export default function Search() {
                   {book[1]}
                 </Typography>
                 <Typography>
-                  {book[5]}
+                  <Box width={1}>
+                    <TextField
+                      style={{ width: 250 }}
+                      placeholder="MultiLine with rows: 2 and rowsMax: 4"
+                      multiline
+                      rows={10}
+                      rowsMax={10}
+                      defaultValue={book[5]}
+                    />
+                  </Box>
                 </Typography>
               </CardContent>
               <CardActions>
@@ -226,8 +239,8 @@ export default function Search() {
                   {book[3]}
                 </Button>
                 <Button size="small" color="primary">
-                  Edit
-                    </Button>
+                  View
+                </Button>
               </CardActions>
             </Card>
           </Grid >
