@@ -10,8 +10,20 @@ import Paper from '@material-ui/core/Paper';
 import Link from '@material-ui/core/Link';
 import { useState, useEffect } from 'react';
 import Button from '@material-ui/core/Button';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
 import SideBar from './SideBar';
 import { Hidden } from '@material-ui/core';
+import Card from '@material-ui/core/Card';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+import CardMedia from '@material-ui/core/CardMedia';
+import TextField from '@material-ui/core/TextField';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import GridList from '@material-ui/core/GridList';
+import GridListTile from '@material-ui/core/GridListTile';
+import GridListTileBar from '@material-ui/core/GridListTileBar';
+
 // import Chart from './Chart';
 // import Deposits from './Deposits';
 // import Orders from './Orders';
@@ -32,6 +44,40 @@ function Copyright() {
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
+  gridList: {
+    flexWrap: 'nowrap',
+    // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
+    transform: 'translateZ(0)',
+  },
+  icon: {
+    marginRight: theme.spacing(2),
+  },
+  heroContent: {
+    backgroundColor: theme.palette.background.paper,
+    padding: theme.spacing(8, 0, 6),
+  },
+  heroButtons: {
+    marginTop: theme.spacing(4),
+  },
+  cardGrid: {
+    paddingTop: theme.spacing(8),
+    paddingBottom: theme.spacing(8),
+  },
+  card: {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  cardMedia: {
+    paddingTop: '56.25%', // 16:9
+  },
+  cardContent: {
+    flexGrow: 1,
+  },
+  footer: {
+    backgroundColor: theme.palette.background.paper,
+    padding: theme.spacing(6),
+  },
   root: {
     display: 'flex',
   },
@@ -123,17 +169,17 @@ const useStyles = makeStyles((theme) => ({
 //   }
 // React function that is called when the page load.
 
-  
+
 
 
 export default function Categories() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
-   // Update the document title using the browser API
-   const [categories, setCategories] = React.useState([]);
-   const [nycategory, setNYCategories] = React.useState([]);
-   const [publishercategory, setPublisherCategories] = React.useState([]);
-   const [ratedcategory, setRatedCategories] = React.useState([]);
+  // Update the document title using the browser API
+  const [categories, setCategories] = React.useState([]);
+  const [nycategory, setNYCategories] = React.useState([]);
+  const [publishercategory, setPublisherCategories] = React.useState([]);
+  const [ratedcategory, setRatedCategories] = React.useState([]);
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -141,130 +187,151 @@ export default function Categories() {
     setOpen(false);
   };
   useEffect(() => {
-   
+
     // Send an HTTP request to the server.
     fetch("http://localhost:8081/api/book/categories",
-    {
-      method: 'GET' // The type of HTTP request.
-    }).then(res => {
-      // Convert the response data to a JSON.
-      return res.json();
-    }, err => {
-      // Print the error if there is one.
-      console.log(err);
-    }).then(categoryList => {
-      if (!categoryList) return;
-      // Map each categoryObj in categoryList to an HTML element:
-      // A button which triggers the showAllsections function for each genre.
-      console.log(categoryList);
- 
-     let categoryDivs= categoryList.rows.map( categoryName => (
-        <Button variant="contained" onClick={() => callAllSections(categoryName) }>{categoryName}</Button>
-      ));
-  
-      // Set the state of the genres list to the value returned by the HTTP response from the server.
-      setCategories(
-        categoryDivs
-      );
-      
-    }, err => {
-      // Print the error if there is one.
-      console.log(err);
-    });
+      {
+        method: 'GET' // The type of HTTP request.
+      }).then(res => {
+        // Convert the response data to a JSON.
+        return res.json();
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      }).then(categoryList => {
+        if (!categoryList) return;
+        // Map each categoryObj in categoryList to an HTML element:
+        // A button which triggers the showAllsections function for each genre.
+        console.log(categoryList);
 
-    function callAllSections(categoryName){
+        let categoryDivs = categoryList.rows.map(categoryName => (
+          <Button disableElevation onClick={() => callAllSections(categoryName)}>
+            {categoryName}
+          </Button>
+        ));
+
+        // Set the state of the genres list to the value returned by the HTTP response from the server.
+        setCategories(
+          categoryDivs
+        );
+
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      });
+
+    function callAllSections(categoryName) {
       showNYAuthors(categoryName);
       showPublisher(categoryName);
       showTopRated(categoryName);
     }
 
-    function showNYAuthors(categoryName){
-    fetch("http://localhost:8081/api/book/categories/nyauthor/" + categoryName,
-    {
-      method: 'GET' // The type of HTTP request.
-    }).then(res => {
-      // Convert the response data to a JSON.
-      return res.json();
-    }, err => {
-      // Print the error if there is one.
-      console.log(err);
-    }).then(nybookList => {
-      if (!nybookList) return;
-    
-      console.log(nybookList);
-     let nybookDivs= nybookList.rows.map( nybookItem => (
-        <Button variant="contained" >{nybookItem[1]}</Button>
-      ));
-  
-    //   // Set the state of the genres list to the value returned by the HTTP response from the server.
-      setNYCategories(
-        nybookDivs
-      );
-    }, err => {
-      // Print the error if there is one.
-      console.log(err);
-    });
-  }
+    function showNYAuthors(categoryName) {
+      fetch("http://localhost:8081/api/book/categories/nyauthor/" + categoryName,
+        {
+          method: 'GET' // The type of HTTP request.
+        }).then(res => {
+          // Convert the response data to a JSON.
+          return res.json();
+        }, err => {
+          // Print the error if there is one.
+          console.log(err);
+        }).then(nybookList => {
+          if (!nybookList) return;
 
-  function showPublisher(categoryName){
-    console.log("in publisherL" + categoryName)
-    fetch("http://localhost:8081/api/book/categories/publisher/" + categoryName,
-    {
-      method: 'GET' // The type of HTTP request.
-    }).then(res => {
-      // Convert the response data to a JSON.
-      console.log("got some")
-      return res.json();
-    }, err => {
-      // Print the error if there is one.
-      console.log("err");
-    }).then(publisherBookList => {
-      if (!publisherBookList) return;
-      // Map each genreObj in genreList to an HTML element:
-      // A button which triggers the showMovies function for each genre.
-      console.log("lis:"+publisherBookList);
-     let publisherBookDivs= publisherBookList.rows.map( publisherBookItem => (
-        <Button variant="contained" >{publisherBookItem[1]}</Button>
-      ));
-  
-    //   // Set the state of the genres list to the value returned by the HTTP response from the server.
-      setPublisherCategories(
-        publisherBookDivs
-      );
-    }, err => {
-      // Print the error if there is one.
-      console.log("some other error");
-      console.log(err);
-    });
-  }
-  function showTopRated(categoryName){
-    fetch("http://localhost:8081/api/book/categories/topRated/" + categoryName,
-    {
-      method: 'GET' // The type of HTTP request.
-    }).then(res => {
-      // Convert the response data to a JSON.
-      return res.json();
-    }, err => {
-      // Print the error if there is one.
-      console.log(err);
-    }).then(ratedBookList => {
-      if (!ratedBookList) return;
-      // Map each genreObj in genreList to an HTML element:
-      // A button which triggers the showMovies function for each genre.
-      console.log(ratedBookList);
-     let ratedBookDivs= ratedBookList.rows.map( ratedBookItem => (
-        <Button variant="contained" >{ratedBookItem[2]}</Button>
-      ));
-  
-    //   // Set the state of the genres list to the value returned by the HTTP response from the server.
-      setRatedCategories(
-        ratedBookDivs
-      );
-    }, err => {
-      // Print the error if there is one.
-      console.log(err);
-    });
-  }
+          console.log(nybookList);
+          let nybookDivs = nybookList.rows.map(nybookItem => (
+            // <Button variant="contained" >{nybookItem[1]}</Button>
+            <GridListTile key={nybookItem[0]}>
+              <img src={nybookItem[3]} alt={nybookItem[1]} />
+            </GridListTile>
+          ));
+
+          //   // Set the state of the genres list to the value returned by the HTTP response from the server.
+          setNYCategories(
+            nybookDivs
+          );
+        }, err => {
+          // Print the error if there is one.
+          console.log(err);
+        });
+    }
+
+    function showPublisher(categoryName) {
+      console.log("in publisherL" + categoryName)
+      fetch("http://localhost:8081/api/book/categories/publisher/" + categoryName,
+        {
+          method: 'GET' // The type of HTTP request.
+        }).then(res => {
+          // Convert the response data to a JSON.
+          console.log("got some")
+          return res.json();
+        }, err => {
+          // Print the error if there is one.
+          console.log("err");
+        }).then(publisherBookList => {
+          if (!publisherBookList) return;
+          // Map each genreObj in genreList to an HTML element:
+          // A button which triggers the showMovies function for each genre.
+          console.log("lis:" + publisherBookList);
+          let publisherBookDivs = publisherBookList.rows.map(publisherBookItem => (
+            // <Button variant="contained" >{publisherBookItem[1]}</Button>
+            <GridListTile key={publisherBookItem[0]}>
+              <img src={publisherBookItem[3]} alt={publisherBookItem[1]} />
+            </GridListTile>
+          ));
+
+          //   // Set the state of the genres list to the value returned by the HTTP response from the server.
+          setPublisherCategories(
+            publisherBookDivs
+          );
+        }, err => {
+          // Print the error if there is one.
+          console.log("some other error");
+          console.log(err);
+        });
+    }
+    function showTopRated(categoryName) {
+      fetch("http://localhost:8081/api/book/categories/topRated/" + categoryName,
+        {
+          method: 'GET' // The type of HTTP request.
+        }).then(res => {
+          // Convert the response data to a JSON.
+          return res.json();
+        }, err => {
+          // Print the error if there is one.
+          console.log(err);
+        }).then(ratedBookList => {
+          if (!ratedBookList) return;
+          // Map each genreObj in genreList to an HTML element:
+          // A button which triggers the showMovies function for each genre.
+          console.log(ratedBookList);
+          let ratedBookDivs = ratedBookList.rows.map(ratedBookItem => (
+            // <Button variant="contained" orientation="horizontal">{ratedBookItem[2]}</Button>
+            // <GridListTile key={ratedBookItem[0]}>
+            //   <img src={ratedBookItem[4]} alt={ratedBookItem[2]} />
+            // </GridListTile>
+            <GridListTile key={ratedBookItem[0]}>
+              <img src={ratedBookItem[4]} alt={ratedBookItem[2]} />
+              <GridListTileBar
+                title={ratedBookItem[2]}
+                classes={{
+                  root: classes.titleBar,
+                  title: classes.title,
+                }}
+              />
+            </GridListTile>
+          ));
+
+          //   // Set the state of the genres list to the value returned by the HTTP response from the server.
+          setRatedCategories(
+            ratedBookDivs
+          );
+        }, err => {
+          // Print the error if there is one.
+          console.log(err);
+        });
+    }
   });
 
 
@@ -273,56 +340,48 @@ export default function Categories() {
   return (
     <div className={classes.root}>
       <CssBaseline />
-      <SideBar name='Categories'/>
+      <SideBar name='Categories' />
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
-
           <Grid container spacing={4}>
-          
-            <Grid item xs={12}>
-              <Paper className={fixedHeightPaper}>
+            <Grid container item xs={12} alignItems="flex-start" justify="flex-end" direction="row">
+              <Paper>
                 {categories}
-                {/* <Chart /> */}
               </Paper>
+
             </Grid>
             {/* Recent Deposits */}
-           
+
             {/* Recent Orders */}
             <Hidden xsDown>
               <Grid item xs={12} >
                 <Typography variant="subtitle1" gutterBottom>
                   Books by New York Times Authors
                 </Typography>
-                <Paper className={fixedHeightPaper}>
-                  {/* <Orders /> */}
+                <GridList cellHeight={400} spacing={1} className={classes.gridList} cols={3}>
                   {nycategory}
-                  
-                </Paper>
+                </GridList>
               </Grid>
             </Hidden>
-          
+
             <Grid item xs={12} >
-            <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="subtitle1" gutterBottom>
                 Books by Top Publishers
               </Typography>
-              <Paper className={fixedHeightPaper}>
-                {/* <Orders /> */}
+              <GridList cellHeight={400} spacing={1} className={classes.gridList} cols={3}>
                 {publishercategory}
-                 
-              </Paper>
+              </GridList>
             </Grid>
             <Grid item xs={12} >
-            <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="subtitle1" gutterBottom>
                 Top Rated Books
               </Typography>
-              <Paper className={fixedHeightPaper}>
-                {/* <Orders /> */}
+              <GridList cellHeight={400} spacing={1} className={classes.gridList} cols={2.5}>
                 {ratedcategory}
-                 
-              </Paper>
+              </GridList>
             </Grid>
-          
+
           </Grid>
           <Box pt={4}>
             <Copyright />
