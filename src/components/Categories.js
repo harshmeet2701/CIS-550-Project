@@ -206,11 +206,11 @@ export default function Categories() {
 
         let categoryDivs = categoryList.rows.map(categoryName => (
 
-          <GridListTile key={categoryName}>
-            <Button disableElevation onClick={() => callAllSections(categoryName)}>
+          // <GridListTile key={categoryName}>
+            <Button variant="contained" size= "medium" className={classes.margin} disableElevation onClick={() => callAllSections(categoryName)}>
               {categoryName}
             </Button>
-          </GridListTile>
+          // </GridListTile>
 
         ));
 
@@ -242,12 +242,19 @@ export default function Categories() {
           console.log(err);
         }).then(nybookList => {
           if (!nybookList) return;
-
-          console.log(nybookList);
+          let image = './default_img.jpg';
+          console.log("nylist"+nybookList);
           let nybookDivs = nybookList.rows.map(nybookItem => (
             // <Button variant="contained" >{nybookItem[1]}</Button>
             <GridListTile key={nybookItem[0]}>
-              <img src={nybookItem[3]} alt={nybookItem[1]} />
+              <img src={nybookItem[3]===null?image:nybookItem[3]} alt={nybookItem[1]} />
+              <GridListTileBar
+                title={nybookItem[1]}
+                classes={{
+                  root: classes.titleBar,
+                  title: classes.title,
+                }}
+              />
             </GridListTile>
           ));
 
@@ -276,12 +283,20 @@ export default function Categories() {
         }).then(publisherBookList => {
           if (!publisherBookList) return;
           // Map each genreObj in genreList to an HTML element:
+          var image = "./default_img.jpg";
           // A button which triggers the showMovies function for each genre.
           console.log("lis:" + publisherBookList);
           let publisherBookDivs = publisherBookList.rows.map(publisherBookItem => (
             // <Button variant="contained" >{publisherBookItem[1]}</Button>
             <GridListTile key={publisherBookItem[0]}>
-              <img src={publisherBookItem[3]} alt={publisherBookItem[1]} />
+              <img src={publisherBookItem[3]===null?image:publisherBookItem[3]} alt={publisherBookItem[1]} />
+              <GridListTileBar
+                title={publisherBookItem[1]}
+                classes={{
+                  root: classes.titleBar,
+                  title: classes.title,
+                }}
+              />
             </GridListTile>
           ));
 
@@ -349,15 +364,15 @@ export default function Categories() {
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
           <Grid container spacing={4}>
-            <Grid container item xs={12} alignItems="flex-start" justify="flex-end" direction="row">
-              <Paper>
-                <GridList cellHeight={55} className={classes.gridList} cols={12}>
+            <Grid item xs={12} container alignItems="center" justify="center" direction="row">
+              {/* <Paper> */}
+                {/* <GridList cellHeight={55} className={classes.gridList} cols={12}> */}
                   {categories}
-                </GridList>
-
-              </Paper>
-
             </Grid>
+
+              {/* </Paper> */}
+
+          {/* </Grid> */}
             {/* Recent Deposits */}
 
             {/* Recent Orders */}
@@ -366,7 +381,7 @@ export default function Categories() {
                 <Typography variant="subtitle1" gutterBottom>
                   Books by New York Times Authors
                 </Typography>
-                <GridList cellHeight={400} spacing={1} className={classes.gridList} cols={3}>
+                <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
                   {nycategory}
                 </GridList>
               </Grid>
@@ -376,7 +391,7 @@ export default function Categories() {
               <Typography variant="subtitle1" gutterBottom>
                 Books by Top Publishers
               </Typography>
-              <GridList cellHeight={400} spacing={1} className={classes.gridList} cols={3}>
+              <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
                 {publishercategory}
               </GridList>
             </Grid>
@@ -384,7 +399,7 @@ export default function Categories() {
               <Typography variant="subtitle1" gutterBottom>
                 Top Rated Books
               </Typography>
-              <GridList cellHeight={400} spacing={1} className={classes.gridList} cols={2.5}>
+              <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
                 {ratedcategory}
               </GridList>
             </Grid>
