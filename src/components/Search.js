@@ -6,6 +6,7 @@ import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import SearchBar from 'material-ui-search-bar';
+import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import { useState, useEffect } from 'react';
 import Paper from '@material-ui/core/Paper';
@@ -33,35 +34,35 @@ function Copyright() {
   );
 }
 
-function SearchNow(searchVal) {
-  alert("Here " + searchVal);
+// function SearchNow(searchVal) {
+//   alert("Here " + searchVal);
 
-  fetch("http://localhost:8081/api/book/search/title/" + searchVal,
-    {
-      method: 'GET' // The type of HTTP request.
-    }).then(res => {
-      // Convert the response data to a JSON.
-      return res.json();
-    }, err => {
-      // Print the error if there is one.
-      console.log(err);
-    }).then(SearchNow => {
-      if (!SearchNow) return;
+//   fetch("http://localhost:8081/api/book/search/title/" + searchVal,
+//     {
+//       method: 'GET' // The type of HTTP request.
+//     }).then(res => {
+//       // Convert the response data to a JSON.
+//       return res.json();
+//     }, err => {
+//       // Print the error if there is one.
+//       console.log(err);
+//     }).then(SearchNow => {
+//       if (!SearchNow) return;
 
-      console.log(SearchNow);
-      let searchDivs = SearchNow.rows.map(searchResult => (
-        <Button variant="contained" >{searchResult}</Button>
-      ));
+//       console.log(SearchNow);
+//       let searchDivs = SearchNow.rows.map(searchResult => (
+//         <Button variant="contained" >{searchResult}</Button>
+//       ));
 
-      //   // Set the state of the genres list to the value returned by the HTTP response from the server.
-      SearchNow(
-        searchDivs
-      );
-    }, err => {
-      // Print the error if there is one.
-      console.log(err);
-    });
-}
+//       //   // Set the state of the genres list to the value returned by the HTTP response from the server.
+//       SearchNow(
+//         searchDivs
+//       );
+//     }, err => {
+//       // Print the error if there is one.
+//       console.log(err);
+//     });
+// }
 
 const drawerWidth = 240;
 
@@ -179,6 +180,7 @@ export default function Search() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
   const [books, setBooks] = React.useState([]);
+  const [searchText, setsearchText] = useState("");
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -187,25 +189,40 @@ export default function Search() {
   };
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
-  useEffect(() => {
+  const keyPress = (e) => {
+    if (e.keyCode == 13) {
+      // alert("Enter key pressed!"); 
+      console.log('value', e.target.value);
+    }
+  }
 
-    // Send an HTTP request to the server.
-    fetch("http://localhost:8081/api/book/search/title/harry",
+  const handleChange = (event) => {
+    const target_name = event.target.name;
+    const target_value = event.target.value;
+    // alert("searchText value=" + target_value);
+    setsearchText(target_value);
+
+    console.log("target_name = " + target_name);
+    console.log("target_value = " + target_value);
+
+    handleSearchText(event);
+  }
+
+  const handleSearchText = (event) => {
+    event.preventDefault();
+    console.log("searchText in handleSearchText = " + event.target.value);
+
+    fetch("http://localhost:8081/api/book/search/title/" + event.target.value,
       {
-        method: 'GET' // The type of HTTP request.
+        method: 'GET'
       }).then(res => {
-        // Convert the response data to a JSON.
         return res.json();
       }, err => {
-        // Print the error if there is one.
         console.log(err);
       }).then(bookList => {
         if (!bookList) return;
-        // Map each categoryObj in searchList to an HTML element:
-        // A button which triggers the showAllsections function for each genre.
 
         let bookDivs = bookList.rows.map((book, i) => (
-          // <Button variant="contained" onClick={() => callAllSections(bookName)}>{bookName}</Button>
           console.log(book[4]),
           < Grid item key={book.isbn} xs={12} sm={6} md={4} >
             <Card className={classes.card}>
@@ -243,7 +260,66 @@ export default function Search() {
         console.log(err);
       });
 
-  });
+
+  }
+
+  // useEffect(() => {
+
+  //   // Send an HTTP request to the server.
+  //   fetch("http://localhost:8081/api/book/search/title/pride",
+  //     {
+  //       method: 'GET' // The type of HTTP request.
+  //     }).then(res => {
+  //       // Convert the response data to a JSON.
+  //       return res.json();
+  //     }, err => {
+  //       // Print the error if there is one.
+  //       console.log(err);
+  //     }).then(bookList => {
+  //       if (!bookList) return;
+  //       // Map each categoryObj in searchList to an HTML element:
+  //       // A button which triggers the showAllsections function for each genre.
+
+  //       let bookDivs = bookList.rows.map((book, i) => (
+  //         // <Button variant="contained" onClick={() => callAllSections(bookName)}>{bookName}</Button>
+  //         console.log(book[4]),
+  //         < Grid item key={book.isbn} xs={12} sm={6} md={4} >
+  //           <Card className={classes.card}>
+  //             <CardMedia
+  //               className={classes.cardMedia}
+  //               image={book[4]}
+  //             />
+  //             <CardContent className={classes.cardContent}>
+  //               <Typography gutterBottom variant="h5" component="h2">
+  //                 {book[1]}
+  //               </Typography>
+  //               <Typography>
+  //                 {book[5]}
+  //               </Typography>
+  //             </CardContent>
+  //             <CardActions>
+  //               <Button size="small" color="primary">
+  //                 {book[3]}
+  //               </Button>
+  //               <Button size="small" color="primary">
+  //                 Edit
+  //                   </Button>
+  //             </CardActions>
+  //           </Card>
+  //         </Grid >
+  //       ));
+
+  //       // Set the state of the genres list to the value returned by the HTTP response from the server.
+  //       setBooks(
+  //         bookDivs
+  //       );
+
+  //     }, err => {
+  //       // Print the error if there is one.
+  //       console.log(err);
+  //     });
+
+  // });
 
   return (
     <div className={classes.root}>
@@ -252,14 +328,32 @@ export default function Search() {
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
-          <SearchBar
-            onChange={() => console.log('onChange')}
-            onRequestSearch={() => console.log('onRequestSearch')}
+          <TextField
+            name="searchText"
+            variant="outlined"
+            required
+            fullWidth
+            id="searchText"
+            label="Search"
+            autoFocus
+            onKeyDown={keyPress}
+            onChange={handleChange}
+          />
+          {/* <SearchBar
+            name="searchText"
+            variant="outlined"
+            required
+            fullWidth
+            id="searchText"
+            label="Search"
+            autoFocus
+            onBlur={handleChange
+            }
             style={{
               margin: '0 auto',
               maxWidth: 800
             }}
-          />
+          /> */}
         </Container>
         <Container className={classes.cardGrid} maxWidth="md">
           <Grid container spacing={4}>
