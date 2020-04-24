@@ -205,9 +205,13 @@ export default function Categories() {
         console.log(categoryList);
 
         let categoryDivs = categoryList.rows.map(categoryName => (
-          <Button disableElevation onClick={() => callAllSections(categoryName)}>
-            {categoryName}
-          </Button>
+
+          <GridListTile key={categoryName}>
+            <Button disableElevation onClick={() => callAllSections(categoryName)}>
+              {categoryName}
+            </Button>
+          </GridListTile>
+
         ));
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
@@ -347,7 +351,10 @@ export default function Categories() {
           <Grid container spacing={4}>
             <Grid container item xs={12} alignItems="flex-start" justify="flex-end" direction="row">
               <Paper>
-                {categories}
+                <GridList cellHeight={55} className={classes.gridList} cols={12}>
+                  {categories}
+                </GridList>
+
               </Paper>
 
             </Grid>
