@@ -9,6 +9,7 @@ const oracledb = require('oracledb');
 router.post('/register', (req, res) => addUser(req, res));
 router.post('/login', (req, res) => loginUser(req, res));
 router.post('/changePassword', (req, res) => changePassword(req, res));
+router.post('/loginThirdParty', (req, res) => loginThirdParty(req, res));
 // router.get('/recommended/nyauthor', (req, res) => getNYAuthorsForYou(req,res));
 // router.get('/recommended/categories', (req, res) => getBooksOnCategories(req,res));
 // router.get('/recommended/author', (req, res) => getAuthorsForYou(req,res));
@@ -185,6 +186,61 @@ function changePassword(req, res) {
   }, err => {
     console.log(err);
     res.status(500).json({message: err.message});
+  });
+}
+
+function loginThirdParty(req, res) {
+
+  connection.then((con) => {
+    const email = req.body.email;
+    const sql = `select * from Member where email = '${email}'`;
+
+    con.execute(sql).then((response)=> {
+      console.log(response);
+      const result = response.rows;
+      if(result.length === 1) {
+        return res.status(200).json({
+          email: email,
+          message:'success'
+        })
+      }else {
+
+        const firstName = req.body.firstName;
+        const lastName = req.body.lastName;
+        const password = req.body.password;
+
+        const insertSql = `INSERT INTO Member (email, password, first_name, last_name) VALUES ('${email}', '${password}', '${firstName}', '${lastName}')`;
+
+        console.log(insertSql);
+        con.execute(insertSql, {}, {autoCommit: true}, function (err, rows) {
+          if (err){
+            // Duplicated entry
+            if(err.message.includes('unique constraint')){
+              res.status(400).json({message:'duplicate'});
+              return;
+            }
+            
+            //Other Error
+            res.status(400).json({message: err.message});
+            return;
+          }else {
+            if(rows.rowsAffected === 1){
+              res.status(201).json({
+                message: 'success',
+                email: email
+              })
+            }else {
+              res.status(500).json({message: "Not able to insert entry in database"});
+            }
+            console.log(rows);
+          }
+        });
+        
+      }
+    }, (err) => {
+      console.log(err);
+      res.status(500).json({message: err.message});
+    });
   });
 }
 

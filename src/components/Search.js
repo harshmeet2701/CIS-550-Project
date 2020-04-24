@@ -36,7 +36,7 @@ function Copyright() {
 function SearchNow(searchVal) {
   alert("Here " + searchVal);
 
-  fetch("http://localhost:8081/book/search/title/" + searchVal,
+  fetch("http://localhost:8081/api/book/search/title/" + searchVal,
     {
       method: 'GET' // The type of HTTP request.
     }).then(res => {
@@ -190,7 +190,7 @@ export default function Search() {
   useEffect(() => {
 
     // Send an HTTP request to the server.
-    fetch("http://localhost:8081/book/search/title/harry",
+    fetch("http://localhost:8081/api/book/search/title/harry",
       {
         method: 'GET' // The type of HTTP request.
       }).then(res => {

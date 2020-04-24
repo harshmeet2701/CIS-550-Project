@@ -100,7 +100,10 @@ const useStyles = makeStyles((theme) => ({
   },
   fixedHeight: {
     height: 240,
-  },
+  }, 
+  spacing: {
+    minWidth: '40px',
+  }
 }));
 
 export default function SideBar(props) {
@@ -168,14 +171,14 @@ export default function SideBar(props) {
       <ListSubheader inset>Profile Settings</ListSubheader>
       
       <ListItem>
-        <ListItemIcon>
+        <ListItemIcon className={classes.spacing}>
           <AccountCircleIcon />
         </ListItemIcon>
-        <ListItemText primary= {auth.auth} secondary= 'Email Address'  />
+        <ListItemText primary= {<Typography variant="h7">{auth.auth}</Typography>} secondary= 'Email Address'  />
       </ListItem>
 
       <ListItem button>
-        <ListItemIcon>
+        <ListItemIcon className={classes.spacing}>
           <ExitToAppIcon />
         </ListItemIcon>
         <ListItemText primary="Log Out" onClick = {logout} />
@@ -187,7 +190,7 @@ export default function SideBar(props) {
     <React.Fragment>
       <ListSubheader inset>Not Logged In</ListSubheader>
       <ListItem button component={NavLink} to='/' exact>
-        <ListItemIcon>
+        <ListItemIcon className={classes.spacing}>
           <ExitToAppIcon />
         </ListItemIcon>
         <ListItemText primary="Log In"/>

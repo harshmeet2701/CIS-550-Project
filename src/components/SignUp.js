@@ -120,15 +120,22 @@ export default function SignUp(props) {
         // Navigate to Sign in
        setRedirect(true);
 
-      }else {
+      }else if(resp.message === 'duplicate'){
         // Popup a Dailog of User Already exists
         setDailogTitle("User Already exits");
         setDailogContent('Use another email account, this email already exits. If you dont remember the password click on forgot password in Sign In')
         setOpen(true);
+      }else {
+        setDailogTitle("Error");
+        setDailogContent(resp.message);
+        setOpen(true);
       }
     })
     .catch(err => {
-      console.log(err);
+      // console.log(err);
+        setDailogTitle("Error");
+        setDailogContent(err.message);
+        setOpen(true);
     });
 
   }

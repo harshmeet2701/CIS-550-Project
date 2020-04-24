@@ -23,6 +23,9 @@ import {login} from '../actions';
 import { Redirect } from 'react-router-dom';
 import { useEffect } from 'react';
 import Dailog from './Dailog';
+import FacebookLogin from 'react-facebook-login';
+import GoogleLogin from 'react-google-login';
+import {googleClientId, facebookClientId} from './config';
 
 function Copyright() {
   return (
@@ -66,6 +69,17 @@ const useStyles = makeStyles((theme) => ({
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
+  facebook: {
+    color: '#fff',
+    backgroundColor: '#4c69ba',
+    border: '#4c69ba',
+    fontSize: '0.8em',
+    display: 'inline-block',
+    boxShadow: 'rgba(0, 0, 0, 0.24) 0px 2px 2px 0px',
+  },
+  google: {
+    padding: '0px',
+  },
 }));
 
 export default function SignInSide() {
@@ -81,6 +95,9 @@ export default function SignInSide() {
   
   const auth = useSelector(state => state.auth);
   const dispatch = useDispatch();
+
+  console.log(googleClientId);
+  console.log(facebookClientId);
 
   useEffect(() => {
     
@@ -179,7 +196,8 @@ export default function SignInSide() {
       }
     })
     .catch(err => {
-      
+      setDailogTitle("Error");
+      setDailogContent(err.message);
       setOpen(true);
     });
 
@@ -188,6 +206,118 @@ export default function SignInSide() {
   const handleCheck = (event) => {
     setChecked(event.target.checked);
   }
+
+  const responseFacebook = (response) => {
+    console.log(response);
+    console.log(window);
+    let access_token = response.accessToken;
+    console.log(response.email, response.first_name, response.last_name, response.id)
+    if (response.email && response.first_name && response.last_name && response.id) {
+      // response.id
+      console.log('Success');
+      fetch('http://localhost:8081/api/user/loginThirdParty', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'    
+        },
+        body:JSON.stringify({email: response.email, password: response.id, firstName: response.first_name, lastName: response.last_name})
+      })
+      .then(resp => resp.json())
+      .then(resp => {
+        console.log(resp);
+        if (resp.message === 'success'){
+          // Update context
+          console.log(auth);
+          dispatch(login(resp.email));
+          // Session / Cache storage if Remember me
+          const curr = new Date();
+          let expireDuration = 1800;
+          let expirationDate = new Date(curr.getTime() + expireDuration * 1000);
+          const sessionObject = {
+            expiresAt: expirationDate,
+            email: resp.email
+          };
+          sessionStorage.setItem('sessionObject', JSON.stringify(sessionObject));
+          // Redirect to Dashboard
+          setRedirect(true);
+  
+          console.log(resp);
+        }else {
+          // display error message
+          setDailogTitle("Login Failed");
+          setDailogContent('Please try again')
+          setOpen(true);
+        }
+      })
+      .catch(err => {
+        setDailogTitle("Error");
+        setDailogContent(err.message);
+        setOpen(true);
+      })
+
+    }else {
+      window.FB.getLoginStatus(function(response) {
+        console.log(response);
+        window.FB.logout( resp => {
+          console.log('Logout');
+          console.log(response);
+          // window.location = '/';
+        })
+      });
+    }
+  }
+
+  const responseGoogle = (response) => {
+    console.log(response);
+
+    console.log(response.profileObj.email, response.profileObj.googleId, response.profileObj.givenName, response.profileObj.familyName)
+
+    if(response.profileObj.email && response.profileObj.googleId && response.profileObj.givenName && response.profileObj.familyName) {
+      //response.profileObj.googleId
+      fetch('http://localhost:8081/api/user/loginThirdParty', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'    
+        },
+        body:JSON.stringify({email: response.profileObj.email, password: response.profileObj.googleId, firstName: response.profileObj.givenName, lastName: response.profileObj.familyName})
+      })
+      .then(resp => resp.json())
+      .then(resp => {
+        console.log(resp);
+        if (resp.message === 'success'){
+          // Update context
+          console.log(auth);
+          dispatch(login(resp.email));
+          // Session / Cache storage if Remember me
+          const curr = new Date();
+          let expireDuration = 1800;
+          let expirationDate = new Date(curr.getTime() + expireDuration * 1000);
+          const sessionObject = {
+            expiresAt: expirationDate,
+            email: resp.email
+          };
+          sessionStorage.setItem('sessionObject', JSON.stringify(sessionObject));
+          // Redirect to Dashboard
+          setRedirect(true);
+  
+          console.log(resp);
+        }else {
+          // display error message
+          setDailogTitle("Login Failed");
+          setDailogContent('Please try again')
+          setOpen(true);
+        }
+      }) 
+      .catch( err => {
+        setDailogTitle("Error");
+        setDailogContent(err.message);
+        setOpen(true);
+      })     
+    }
+  }
+   
 
   if (redirect || status) {
     return <Redirect to={'/search'} />
@@ -258,17 +388,43 @@ export default function SignInSide() {
             </Grid>
             <Grid container>
               <Grid item xs>
+          
               <IconButton>
-               <FacebookIcon color="primary" />
+              <FacebookLogin
+                  appId= {facebookClientId}
+                  autoLoad={false}
+                  cssClass={classes.facebook}
+                  fields="email, first_name, last_name"
+                  scope="public_profile,  email"
+                  callback={responseFacebook}
+                  icon="fa-facebook"
+                  textButton = ""
+                />
               </IconButton>
 
+
+
               <IconButton>
+              <GoogleLogin
+                clientId={googleClientId}
+                buttonText=""
+                onSuccess={responseGoogle}
+                onFailure={responseGoogle}
+                style = {{boxShadow: 'none'}}
+                disabledStyle = {{boxShadow: 'rgba(0, 0, 0, 0.24) 0px 2px 2px 0px'}}
+                className = {classes.google}
+                // render={renderProps => (
+                //   <div onClick={renderProps.onClick}>
+                //     <MailIcon color='error' style={{fontSize: '1.2em'}} />
+                //   </div>
+                // )}
+                cookiePolicy={'single_host_origin'}
+                
+              />
+              </IconButton>
+              {/* <IconButton>
                <InstagramIcon color="secondary" />
-              </IconButton>
-
-              <IconButton>
-               <MailIcon color="primary" />
-              </IconButton>
+              </IconButton> */}
               </Grid>
               <Grid item xs>
              

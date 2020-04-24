@@ -10,9 +10,15 @@ import { Provider } from 'react-redux';
 const loadState = () => {
 
   const sessionObj = sessionStorage.getItem('sessionObject');
+  const localObj = localStorage.getItem('cacheObject');
 
   if(sessionObj) {
     const email = JSON.parse(sessionObj).email;
+    const state = {auth:{auth: email}};
+
+    return state
+  }else if(localObj){
+    const email = JSON.parse(localObj).email;
     const state = {auth:{auth: email}};
 
     return state

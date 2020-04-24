@@ -12,7 +12,6 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import {NavLink} from 'react-router-dom';
 
-
 export const mainListItems = (
   <div>
     <ListItem button component={NavLink} to="/search" activeClassName="Mui-selected" exact>

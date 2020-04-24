@@ -143,7 +143,7 @@ export default function Categories() {
   useEffect(() => {
    
     // Send an HTTP request to the server.
-    fetch("http://localhost:8081/book/categories",
+    fetch("http://localhost:8081/api/book/categories",
     {
       method: 'GET' // The type of HTTP request.
     }).then(res => {
@@ -179,7 +179,7 @@ export default function Categories() {
     }
 
     function showNYAuthors(categoryName){
-    fetch("http://localhost:8081/book/categories/nyauthor/" + categoryName,
+    fetch("http://localhost:8081/api/book/categories/nyauthor/" + categoryName,
     {
       method: 'GET' // The type of HTTP request.
     }).then(res => {
@@ -208,7 +208,7 @@ export default function Categories() {
 
   function showPublisher(categoryName){
     console.log("in publisherL" + categoryName)
-    fetch("http://localhost:8081/book/categories/publisher/" + categoryName,
+    fetch("http://localhost:8081/api/book/categories/publisher/" + categoryName,
     {
       method: 'GET' // The type of HTTP request.
     }).then(res => {
@@ -238,7 +238,7 @@ export default function Categories() {
     });
   }
   function showTopRated(categoryName){
-    fetch("http://localhost:8081/book/categories/topRated/" + categoryName,
+    fetch("http://localhost:8081/api/book/categories/topRated/" + categoryName,
     {
       method: 'GET' // The type of HTTP request.
     }).then(res => {
