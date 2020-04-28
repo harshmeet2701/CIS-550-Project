@@ -237,26 +237,8 @@ export default function Search() {
                 <Typography gutterBottom variant="h5" component="h2">
                   {book[1]}
                 </Typography>
-                <Typography>
-                  <Box width={1}>
-                    <TextField
-                      style={{ width: 250 }}
-                      placeholder="MultiLine with rows: 2 and rowsMax: 4"
-                      multiline
-                      rows={10}
-                      rowsMax={10}
-                      defaultValue={book[5]}
-                    />
-                  </Box>
-                </Typography>
               </CardContent>
               <CardActions>
-                <Button size="small" color="primary">
-                  {book[3]}
-                </Button>
-                <Button size="small" color="primary">
-                  View
-                </Button>
               </CardActions>
             </Card>
           </Grid >

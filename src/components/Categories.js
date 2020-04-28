@@ -6,6 +6,7 @@ import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
+import image from '../assets/images/bookdisplay.jpg';
 import Paper from '@material-ui/core/Paper';
 import Link from '@material-ui/core/Link';
 import { useState, useEffect } from 'react';
@@ -207,9 +208,9 @@ export default function Categories() {
         let categoryDivs = categoryList.rows.map(categoryName => (
 
           // <GridListTile key={categoryName}>
-            <Button variant="contained" size= "medium" className={classes.margin} disableElevation onClick={() => callAllSections(categoryName)}>
-              {categoryName}
-            </Button>
+          <Button variant="contained" size="medium" className={classes.margin} disableElevation onClick={() => callAllSections(categoryName)}>
+            {categoryName}
+          </Button>
           // </GridListTile>
 
         ));
@@ -243,11 +244,11 @@ export default function Categories() {
         }).then(nybookList => {
           if (!nybookList) return;
           let image = './default_img.jpg';
-          console.log("nylist"+nybookList);
+          console.log("nylist" + nybookList);
           let nybookDivs = nybookList.rows.map(nybookItem => (
             // <Button variant="contained" >{nybookItem[1]}</Button>
             <GridListTile key={nybookItem[0]}>
-              <img src={nybookItem[3]===null?image:nybookItem[3]} alt={nybookItem[1]} />
+              <img src={nybookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : nybookItem[3]} alt={nybookItem[1]} />
               <GridListTileBar
                 title={nybookItem[1]}
                 classes={{
@@ -283,13 +284,13 @@ export default function Categories() {
         }).then(publisherBookList => {
           if (!publisherBookList) return;
           // Map each genreObj in genreList to an HTML element:
-          var image = "./default_img.jpg";
+
           // A button which triggers the showMovies function for each genre.
           console.log("lis:" + publisherBookList);
           let publisherBookDivs = publisherBookList.rows.map(publisherBookItem => (
             // <Button variant="contained" >{publisherBookItem[1]}</Button>
             <GridListTile key={publisherBookItem[0]}>
-              <img src={publisherBookItem[3]===null?image:publisherBookItem[3]} alt={publisherBookItem[1]} />
+              <img src={publisherBookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : publisherBookItem[3]} alt={publisherBookItem[1]} />
               <GridListTileBar
                 title={publisherBookItem[1]}
                 classes={{
@@ -331,7 +332,7 @@ export default function Categories() {
             //   <img src={ratedBookItem[4]} alt={ratedBookItem[2]} />
             // </GridListTile>
             <GridListTile key={ratedBookItem[0]}>
-              <img src={ratedBookItem[4]} alt={ratedBookItem[2]} />
+              <img src={ratedBookItem[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : ratedBookItem[4]} alt={ratedBookItem[2]} />
               <GridListTileBar
                 title={ratedBookItem[2]}
                 classes={{
@@ -366,13 +367,13 @@ export default function Categories() {
           <Grid container spacing={4}>
             <Grid item xs={12} container alignItems="center" justify="center" direction="row">
               {/* <Paper> */}
-                {/* <GridList cellHeight={55} className={classes.gridList} cols={12}> */}
-                  {categories}
+              {/* <GridList cellHeight={55} className={classes.gridList} cols={12}> */}
+              {categories}
             </Grid>
 
-              {/* </Paper> */}
+            {/* </Paper> */}
 
-          {/* </Grid> */}
+            {/* </Grid> */}
             {/* Recent Deposits */}
 
             {/* Recent Orders */}
