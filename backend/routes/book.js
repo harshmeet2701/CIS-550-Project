@@ -52,7 +52,7 @@ function getBookForTitle(req, res) {
     on bookauthor.authorid = author.authorid
     left join authorwiki ON authorwiki.authorid=author.authorid
     where lower(books.title) like '%${searchValue}%'
-    AND rownum <=15`;
+    AND rownum <=18`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -72,7 +72,8 @@ function getBookForIsbn(req, res) {
     on bookauthor.authorid = author.authorid
     left join authorwiki
     on authorwiki.authorid=author.authorid
-    where books.isbn like '%${searchValue}%'`;
+    where books.isbn like '%${searchValue}%'
+    AND rownum <=18`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -92,9 +93,9 @@ function getBookForAuthor(req, res) {
     inner join author
     on bookauthor.authorid = author.authorid
     left join authorwiki
-    on authorwiki.authorid=author.authorid
+    on authorwiki.authorid = author.authorid
     where lower(author.authorName) like '%${searchValue}%'
-    AND rownum <= 15`;
+    AND rownum <= 18`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -237,18 +238,18 @@ function getMoviesThatBestSeller(req, res) {
 function getTopCategories(req, res) {
 
   connection.then((con) => {
-    const sql = ` WITH temp AS (SELECT Books.isbn, BookCategory.categoryId FROM
-    Books JOIN BookCategory ON Books.isbn =BookCategory.isbn),
-    CategoryTemp AS 
-    (SELECT temp.categoryId, COUNT(DISTINCT(temp.isbn)) AS count FROM temp 
+    const sql = ` WITH temp AS(SELECT Books.isbn, BookCategory.categoryId FROM
+    Books JOIN BookCategory ON Books.isbn = BookCategory.isbn),
+      CategoryTemp AS
+        (SELECT temp.categoryId, COUNT(DISTINCT(temp.isbn)) AS count FROM temp 
     GROUP BY temp.categoryId 
     ORDER BY count DESC),
-    SelectCategories AS 
-    (SELECT DISTINCT(CategoryTemp.categoryId) FROM CategoryTemp
+        SelectCategories AS
+          (SELECT DISTINCT(CategoryTemp.categoryId) FROM CategoryTemp
     WHERE ROWNUM < 20)
     SELECT DISTINCT(Category.categoryName) AS categoryName FROM Category
-    WHERE Category.categoryId IN (SELECT * FROM SelectCategories)
-    `;
+    WHERE Category.categoryId IN(SELECT * FROM SelectCategories)
+      `;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -268,11 +269,11 @@ function getTopCategoryAuthorNY(req, res) {
   var inputcategory = req.params.categoryName;
   console.log(inputcategory);
   connection.then((con) => {
-    const sql = ` WITH NYAuthorTemp AS 
-    (
-    select * from 
-    (
-    SELECT DISTINCT(author.authorid), COUNT(*) AS count 
+    const sql = ` WITH NYAuthorTemp AS
+      (
+        select * from
+          (
+            SELECT DISTINCT(author.authorid), COUNT(*) AS count 
     FROM books
     INNER JOIN nytimesseller
     ON books.isbn = nytimesseller.isbn
@@ -282,14 +283,14 @@ function getTopCategoryAuthorNY(req, res) {
     ON bookauthor.authorid = author.authorid
     GROUP BY author.authorid 
     ORDER BY count DESC
-    )
-    ),
-    
-    CombinedTemp AS
-    (
-    select * from 
-    (
-    SELECT Books.*, Author.AuthorName, BookCategory.categoryid, author.authorid 
+          )
+      ),
+
+      CombinedTemp AS
+        (
+          select * from
+            (
+              SELECT Books.*, Author.AuthorName, BookCategory.categoryid, author.authorid 
     FROM Books
     JOIN BookAuthor 
     ON BookAuthor.isbn = Books.isbn 
@@ -297,21 +298,21 @@ function getTopCategoryAuthorNY(req, res) {
     ON BookAuthor.authorid = Author.authorid
     JOIN BookCategory 
     ON Books.isbn = BookCategory.isbn
-    )
-    )
-    
+            )
+        )
+
     SELECT * FROM
-    (
-    SELECT DISTINCT(combinedtemp.isbn), combinedtemp.title as title, combinedtemp.AuthorName, combinedtemp.img_url
+      (
+        SELECT DISTINCT(combinedtemp.isbn), combinedtemp.title as title, combinedtemp.AuthorName, combinedtemp.img_url
     FROM CombinedTemp
     inner join nyauthortemp
     on combinedtemp.authorid = nyauthortemp.authorid
     AND combinedtemp.categoryId =
-    (SELECT categoryId FROM category
+      (SELECT categoryId FROM category
     WHERE categoryName = '${inputcategory}')
     WHERE combinedtemp.img_url IS NOT NULL
     )
-    WHERE ROWNUM <20`
+  WHERE ROWNUM < 20`
       ;
     con.execute(sql).then((response) => {
       console.log(response);
@@ -332,21 +333,21 @@ function getTopCategoryRated(req, res) {
   console.log(inputcategory);
   connection.then((con) => {
     const sql = `WITH bookC AS
-    (SELECT Books.*, Author.authorname AS author , category.categoryname, category.categoryid
+    (SELECT Books.*, Author.authorname AS author, category.categoryname, category.categoryid
     FROM Books JOIN BookCategory ON Books.isbn = BookCategory.isbn JOIN Category
-     ON category.categoryid=bookcategory.categoryid Join BookAuthor 
-     ON bookauthor.isbn=books.isbn JOIN AUTHOR ON BOOKAUTHOR.AUTHORID=author.authorid)
-    SELECT * FROM(
-     SELECT DISTINCT bookC.isbn, bookC.author, bookC.title, bookC.rating as rating, bookC.img_url
+     ON category.categoryid = bookcategory.categoryid Join BookAuthor 
+     ON bookauthor.isbn = books.isbn JOIN AUTHOR ON BOOKAUTHOR.AUTHORID = author.authorid)
+  SELECT * FROM(
+    SELECT DISTINCT bookC.isbn, bookC.author, bookC.title, bookC.rating as rating, bookC.img_url
     FROM bookC
     WHERE bookC.categoryid IN
     (SELECT categoryId FROM Category
-    WHERE categoryName =  '${inputcategory}')
+    WHERE categoryName = '${inputcategory}')
     AND rating IS NOT NULL
     AND bookC.img_url IS NOT NULL
     ORDER BY rating DESC
-    )
-    WHERE ROWNUM <20`;
+  )
+  WHERE ROWNUM < 20`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -367,44 +368,44 @@ function getTopCategoryPublisher(req, res) {
   connection.then((con) => {
     const sql = `WITH PublishersTemp AS
     (
-    SELECT DISTINCT(books.publisher), COUNT(*) AS count
-    FROM NYTimesSeller JOIN Books ON NYTimesSeller.isbn=Books.isbn
+      SELECT DISTINCT(books.publisher), COUNT(*) AS count
+    FROM NYTimesSeller JOIN Books ON NYTimesSeller.isbn = Books.isbn
     WHERE ROWNUM <= 10
     GROUP BY books.publisher
     ORDER BY count DESC
     ),
     BookUserTemp AS
-    (
-    SELECT Books.isbn
+      (
+        SELECT Books.isbn
     FROM memberchoices
     INNER JOIN Books
     ON Books.isbn = memberchoices.isbn
     ORDER BY Books.rating
-    ),
-    AuthorTemp AS
-    (
-    SELECT author.authorid, Author.authorname
+      ),
+      AuthorTemp AS
+        (
+          SELECT author.authorid, Author.authorname
     FROM Author
     JOIN bookauthor
     ON author.authorid = bookauthor.authorid
-    ),
-    CombinedTemp AS
-    (
-    SELECT Books.*, AuthorTemp.AuthorName, BookCategory.categoryid, authortemp.authorid
+        ),
+        CombinedTemp AS
+          (
+            SELECT Books.*, AuthorTemp.AuthorName, BookCategory.categoryid, authortemp.authorid
     FROM Books
     JOIN BookAuthor ON BookAuthor.isbn = Books.isbn
     LEFT JOIN AuthorTemp ON AuthorTemp.authorId = BookAuthor.authorId
     JOIN BookCategory ON Books.isbn = BookCategory.isbn
-    )
-    SELECT* FROM(
-    SELECT DISTINCT(CombinedTemp.isbn) , CombinedTemp.title, CombinedTemp.AuthorName, CombinedTemp.img_url
+          )
+  SELECT * FROM(
+    SELECT DISTINCT(CombinedTemp.isbn), CombinedTemp.title, CombinedTemp.AuthorName, CombinedTemp.img_url
     FROM CombinedTemp
     INNER JOIN PublishersTemp ON CombinedTemp.publisher = PublishersTemp.publisher
     WHERE CombinedTemp.categoryId IN
     (SELECT categoryId FROM Category
     WHERE categoryName = '${inputcategory}')
     AND CombinedTemp.img_url IS NOT NULL)
-    WHERE ROWNUM <=20`;
+  WHERE ROWNUM <= 20`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);

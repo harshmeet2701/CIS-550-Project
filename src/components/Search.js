@@ -19,7 +19,12 @@ import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import { sizing } from '@material-ui/system';
-
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import NativeSelect from '@material-ui/core/NativeSelect';
 // import Chart from './Chart';
 // import Deposits from './Deposits';
 // import Orders from './Orders';
@@ -79,6 +84,14 @@ const useStyles = makeStyles((theme) => ({
   },
   heroButtons: {
     marginTop: theme.spacing(4),
+  },
+  button: {
+    display: 'block',
+    marginTop: theme.spacing(2),
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
   },
   cardGrid: {
     paddingTop: theme.spacing(8),
@@ -177,12 +190,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const cards = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+const cards = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
 export default function Search() {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
   const [books, setBooks] = React.useState([]);
+  const [criteria, setCriteria] = React.useState([]);
   const [searchText, setsearchText] = useState("");
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -190,6 +204,11 @@ export default function Search() {
   const handleDrawerClose = () => {
     setOpen(false);
   };
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
   const keyPress = (e) => {
@@ -200,42 +219,90 @@ export default function Search() {
   }
 
   const handleChange = (event) => {
-    const target_name = event.target.name;
-    const target_value = event.target.value;
-    // alert("searchText value=" + target_value);
-    setsearchText(target_value);
+    var criteria = event.target.value;
+    setCriteria(criteria);
+  };
 
-    console.log("target_name = " + target_name);
-    console.log("target_value = " + target_value);
+  const handleChangeSearch = (event1) => {
+    if (criteria === 'title') {
+      showTitle(event1.target.value);
+    }
+    if (criteria === "author") {
+      showAuthors(event1.target.value);
+    }
+    if (criteria === "isbn") {
+      showISBN(event1.target.value);
+    }
+  };
 
-    handleSearchText(event);
-  }
+  const handleClose = () => {
+    setOpen(false);
+  };
 
-  const handleSearchText = (event) => {
-    event.preventDefault();
-    console.log("searchText in handleSearchText = " + event.target.value);
-
-    fetch("http://localhost:8081/api/book/search/title/" + event.target.value,
+  function showTitle(searchCriteria) {
+    fetch("http://localhost:8081/api/book/search/title/" + searchCriteria,
       {
-        method: 'GET'
+        method: 'GET' // The type of HTTP request.
       }).then(res => {
+        // Convert the response data to a JSON.
         return res.json();
       }, err => {
+        // Print the error if there is one.
         console.log(err);
       }).then(bookList => {
         if (!bookList) return;
 
         let bookDivs = bookList.rows.map((book, i) => (
           console.log(book[4]),
-          < Grid item key={book.isbn} xs={12} sm={6} md={4} >
-            <Card className={classes.card}>
+          < Grid item key={book.isbn} xs={12} sm={6} md={4} style={{ height: '400px', width: '180px' }}>
+            <Card className={classes.card} style={{ width: '180px' }}>
               <CardMedia
                 className={classes.cardMedia}
-                image={book[4]}
+                image={book[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : book[4]} style={{ height: '300px', width: '175px' }}
               />
               <CardContent className={classes.cardContent}>
-                <Typography gutterBottom variant="h5" component="h2">
+                <Typography gutterBottom>
                   {book[1]}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid >
+        ));
+
+        // Set the state of the genres list to the value returned by the HTTP response from the server.
+        setBooks(
+          bookDivs
+        );
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      });
+  }
+
+  function showAuthors(searchCriteria) {
+    console.log("Value " + searchCriteria);
+    fetch("http://localhost:8081/api/book/search/author/" + searchCriteria,
+      {
+        method: 'GET' // The type of HTTP request.
+      }).then(res => {
+        // Convert the response data to a JSON.
+        return res.json();
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      }).then(authorList => {
+        if (!authorList) return;
+        let authorDivs = authorList.rows.map((author, i) => (
+          console.log(author[2]),
+          < Grid item key={author.isbn} xs={12} sm={6} md={4} style={{ height: '400px', width: '180px' }}>
+            <Card className={classes.card} style={{ width: '180px' }}>
+              <CardMedia
+                className={classes.cardMedia}
+                image={author[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : author[4]} style={{ height: '300px', width: '175px' }}
+              />
+              <CardContent className={classes.cardContent}>
+                <Typography gutterBottom>
+                  {author[1]}
                 </Typography>
               </CardContent>
               <CardActions>
@@ -246,74 +313,54 @@ export default function Search() {
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
         setBooks(
-          bookDivs
+          authorDivs
         );
-
       }, err => {
         // Print the error if there is one.
         console.log(err);
       });
-
-
   }
+  function showISBN(searchCriteria) {
+    fetch("http://localhost:8081/api/book/search/isbn/" + searchCriteria,
+      {
+        method: 'GET' // The type of HTTP request.
+      }).then(res => {
+        // Convert the response data to a JSON.
+        return res.json();
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      }).then(isbnList => {
+        if (!isbnList) return;
 
-  // useEffect(() => {
+        let isbnDivs = isbnList.rows.map((isbn, i) => (
+          console.log(isbn[4]),
+          < Grid item key={isbn.isbn} xs={12} sm={6} md={4} style={{ height: '400px', width: '180px' }}>
+            <Card className={classes.card} style={{ width: '180px' }}>
+              <CardMedia
+                className={classes.cardMedia}
+                image={isbn[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : isbn[4]} style={{ height: '300px', width: '175px' }}
+              />
+              <CardContent className={classes.cardContent}>
+                <Typography gutterBottom>
+                  {isbn[1]}
+                </Typography>
+              </CardContent>
+              <CardActions>
+              </CardActions>
+            </Card>
+          </Grid >
+        ));
 
-  //   // Send an HTTP request to the server.
-  //   fetch("http://localhost:8081/api/book/search/title/pride",
-  //     {
-  //       method: 'GET' // The type of HTTP request.
-  //     }).then(res => {
-  //       // Convert the response data to a JSON.
-  //       return res.json();
-  //     }, err => {
-  //       // Print the error if there is one.
-  //       console.log(err);
-  //     }).then(bookList => {
-  //       if (!bookList) return;
-  //       // Map each categoryObj in searchList to an HTML element:
-  //       // A button which triggers the showAllsections function for each genre.
-
-  //       let bookDivs = bookList.rows.map((book, i) => (
-  //         // <Button variant="contained" onClick={() => callAllSections(bookName)}>{bookName}</Button>
-  //         console.log(book[4]),
-  //         < Grid item key={book.isbn} xs={12} sm={6} md={4} >
-  //           <Card className={classes.card}>
-  //             <CardMedia
-  //               className={classes.cardMedia}
-  //               image={book[4]}
-  //             />
-  //             <CardContent className={classes.cardContent}>
-  //               <Typography gutterBottom variant="h5" component="h2">
-  //                 {book[1]}
-  //               </Typography>
-  //               <Typography>
-  //                 {book[5]}
-  //               </Typography>
-  //             </CardContent>
-  //             <CardActions>
-  //               <Button size="small" color="primary">
-  //                 {book[3]}
-  //               </Button>
-  //               <Button size="small" color="primary">
-  //                 Edit
-  //                   </Button>
-  //             </CardActions>
-  //           </Card>
-  //         </Grid >
-  //       ));
-
-  //       // Set the state of the genres list to the value returned by the HTTP response from the server.
-  //       setBooks(
-  //         bookDivs
-  //       );
-
-  //     }, err => {
-  //       // Print the error if there is one.
-  //       console.log(err);
-  //     });
-
-  // });
+        // Set the state of the genres list to the value returned by the HTTP response from the server.
+        setBooks(
+          isbnDivs
+        );
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      });
+  }
 
   return (
     <div className={classes.root}>
@@ -321,6 +368,26 @@ export default function Search() {
       <SideBar name='Search Books' />
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
+        <FormControl variant="filled" className={classes.formControl} justify="center">
+          <InputLabel htmlFor="filled-age-native-simple">Select Search Criteria</InputLabel>
+          <Select
+            native
+            style={{ width: `${200}px` }}
+            onChange={handleChange}
+            onClose={handleClose}
+            onOpen={handleOpen}
+            open={open}
+            inputProps={{
+              name: 'criteria',
+              id: 'filled-age-native-simple',
+            }}
+          >
+            <option aria-label="None" value="" />
+            <option value={"title"}>Title</option>
+            <option value={"author"}>Authors</option>
+            <option value={"isbn"}>ISBN</option>
+          </Select>
+        </FormControl>
         <Container maxWidth="lg" className={classes.container}>
           <TextField
             name="searchText"
@@ -331,23 +398,8 @@ export default function Search() {
             label="Search"
             autoFocus
             onKeyDown={keyPress}
-            onChange={handleChange}
+            onChange={handleChangeSearch}
           />
-          {/* <SearchBar
-            name="searchText"
-            variant="outlined"
-            required
-            fullWidth
-            id="searchText"
-            label="Search"
-            autoFocus
-            onBlur={handleChange
-            }
-            style={{
-              margin: '0 auto',
-              maxWidth: 800
-            }}
-          /> */}
         </Container>
         <Container className={classes.cardGrid} maxWidth="md">
           <Grid container spacing={4}>
