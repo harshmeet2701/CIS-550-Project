@@ -308,7 +308,9 @@ function getTopCategoryAuthorNY(req, res) {
     on combinedtemp.authorid = nyauthortemp.authorid
     AND combinedtemp.categoryId =
     (SELECT categoryId FROM category
-    WHERE categoryName = '${inputcategory}'))
+    WHERE categoryName = '${inputcategory}')
+    WHERE combinedtemp.img_url IS NOT NULL
+    )
     WHERE ROWNUM <20`
       ;
     con.execute(sql).then((response) => {
@@ -341,6 +343,7 @@ function getTopCategoryRated(req, res) {
     (SELECT categoryId FROM Category
     WHERE categoryName =  '${inputcategory}')
     AND rating IS NOT NULL
+    AND bookC.img_url IS NOT NULL
     ORDER BY rating DESC
     )
     WHERE ROWNUM <20`;
@@ -399,7 +402,8 @@ function getTopCategoryPublisher(req, res) {
     INNER JOIN PublishersTemp ON CombinedTemp.publisher = PublishersTemp.publisher
     WHERE CombinedTemp.categoryId IN
     (SELECT categoryId FROM Category
-    WHERE categoryName = '${inputcategory}'))
+    WHERE categoryName = '${inputcategory}')
+    AND CombinedTemp.img_url IS NOT NULL)
     WHERE ROWNUM <=20`;
     con.execute(sql).then((response) => {
       console.log(response);
