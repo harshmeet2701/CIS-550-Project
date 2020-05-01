@@ -63,9 +63,8 @@ function getBookForTitle(req, res) {
 
 function getBookForIsbn(req, res) {
   var searchValue = req.params.isbn;
-  console.log(searchValue);
   connection.then((con) => {
-    const sql = `SELECT books.*, author.authorname, authorwiki.wikiurl
+    const sql = `SELECT DISTINCT books.isbn, books.title, author.authorname, authorwiki.wikiurl, books.img_url, books.description
     from Books
     inner join bookauthor
     on books.isbn = bookauthor.isbn
@@ -73,7 +72,7 @@ function getBookForIsbn(req, res) {
     on bookauthor.authorid = author.authorid
     left join authorwiki
     on authorwiki.authorid=author.authorid
-    where books.isbn like '${searchValue}'`;
+    where books.isbn like '%${searchValue}%'`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -83,11 +82,10 @@ function getBookForIsbn(req, res) {
 
 
 function getBookForAuthor(req, res) {
-  // var searchValue = req.params.author;
-  var searchValue = 'harry';
+  var searchValue = req.params.author;
   console.log(searchValue);
   connection.then((con) => {
-    const sql = `SELECT books.*, author.authorname, authorwiki.wikiurl
+    const sql = `SELECT DISTINCT books.isbn, books.title, author.authorname, authorwiki.wikiurl, books.img_url, books.description
     from Books
     inner join bookauthor
     on books.isbn = bookauthor.isbn
@@ -95,7 +93,7 @@ function getBookForAuthor(req, res) {
     on bookauthor.authorid = author.authorid
     left join authorwiki
     on authorwiki.authorid=author.authorid
-    where lower(author.authorName) like '${searchValue}'
+    where lower(author.authorName) like '%${searchValue}%'
     AND rownum <= 15`;
     con.execute(sql).then((response) => {
       console.log(response);
@@ -217,8 +215,6 @@ function getNewNY(req, res) {
     })
   });
 }
-
-
 
 /**
  * movies which were adapted from a bestseller book
