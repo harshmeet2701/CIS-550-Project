@@ -10,8 +10,10 @@ router.get('/search/author/:author', (req, res) => getBookForAuthor(req, res));
 router.get('/recommended/topRated', (req, res) => getTopRatedBooks(req, res));
 router.get('/recommended/ages', (req, res) => getAges(req, res));
 router.get('/recommended/ages/:age', (req, res) => getForAge(req, res));
-router.get('/bestseller/publishing', (req, res) => getTopNYPublishing(req, res));
-router.get('/bestseller/authors', (req, res) => getTopNYAuthors(req, res));
+router.get('/bestseller/publisher', (req, res) => getTopPublisher(req, res));
+router.get('/bestseller/publisher/:pubName', (req, res) => getTopNYPublishingBooks(req, res));
+router.get('/bestseller/nyauthor/:authorName', (req, res) => getTopNYAuthorBooks(req, res));
+router.get('/bestseller/nyauthor', (req, res) => getTopAuthor(req, res));
 router.get('/bestseller/rank', (req, res) => getTopNYRank(req, res));
 router.get('/bestseller/new', (req, res) => getNewNY(req, res));
 router.get('/movies/:bestseller', (req, res) => getMoviesThatBestSeller(req, res));
@@ -149,16 +151,81 @@ function getForAge(req, res) {
     })
   });
 }
+
 /**
  * 6) Displays the top 10 bestselling publishing houses determined using the 
  * maximum books found for a certain publishing house in the 
  * NYTimes bestseller list sorted by the weeks on list.
  *want recommendations or in bestsellings section?
  */
-function getTopNYPublishing(req, res) {
+function getTopPublisher(req, res) {
 
   connection.then((con) => {
-    const sql = 'FILL';
+    const sql = `WITH pubTemp AS
+    (
+    SELECT DISTINCT(books.publisher) as publisher, COUNT(*) AS count FROM Books
+    INNER JOIN nytimesseller
+    ON books.isbn = nytimesseller.isbn
+    GROUP BY publisher
+    ORDER BY count DESC
+    )
+    select pubTemp.publisher from pubTemp
+    where rownum <= 15
+    `;
+    con.execute(sql).then((response) => {
+      console.log(response);
+      res.json(response);
+    })
+  });
+}
+
+
+function getTopAuthor(req, res) {
+
+  connection.then((con) => {
+    const sql = `WITH AuthorTemp AS
+    (
+    SELECT * FROM (
+    SELECT DISTINCT(author.authorid) as id, COUNT(*) AS count 
+    FROM books
+    INNER JOIN nytimesseller
+    ON books.isbn = nytimesseller.isbn
+    INNER JOIN bookauthor
+    ON books.isbn = bookauthor.isbn
+    INNER JOIN author
+    ON bookauthor.authorid = author.authorid
+    GROUP BY author.authorid 
+    ORDER BY count DESC
+    )WHERE ROWNUM <=15)
+    SELECT author.authorName FROM author JOIN AuthorTemp ON AuthorTemp.id= author.authorid
+    `;
+    con.execute(sql).then((response) => {
+      console.log(response);
+      res.json(response);
+    })
+  });
+}
+
+/**
+ * 6) Displays the top 10 bestselling publishing houses determined using the 
+ * maximum books found for a certain publishing house in the 
+ * NYTimes bestseller list sorted by the weeks on list.
+ *want recommendations or in bestsellings section?
+ */
+function getTopNYPublishingBooks(req, res) {
+  var pubName = req.params.pubName;
+  pubName= pubName.replace("\'", "\'\'");
+  connection.then((con) => {
+    const sql = `WITH Temp AS
+    (SELECT Books.isbn, Books.title, Books.img_url
+    FROM Books
+    INNER JOIN NYTimesSeller
+    ON Books.isbn = NYTimesSeller.isbn
+    WHERE Books.publisher = '${pubName}'
+    ORDER BY NYTimesSeller.weeks_on_list DESC)
+    SELECT DISTINCT(Temp.isbn) as isbn, Temp.title, Temp.img_url
+    FROM Temp WHERE rownum <=20
+    `;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -172,10 +239,19 @@ function getTopNYPublishing(req, res) {
  * 7)Displays the best selling books of the top 10 best selling authors on the NYTimes best seller list 
  * (based on their number of bestsellers) sorted by their ranks
  */
-function getTopNYAuthors(req, res) {
-
+function getTopNYAuthorBooks(req, res) {
+  var authorName = req.params.authorName;
+  authorName= authorName.replace("\'", "\'\'");
+  console.log("authorName" + authorName);
   connection.then((con) => {
-    const sql = ` FILL`
+    const sql = `select DISTINCT(Books.isbn), Books.title, Books.img_url
+    from Books
+    inner join bookauthor
+    on books.isbn = bookauthor.isbn
+    inner join author
+    on bookauthor.authorid = author.authorid
+    where author.authorName = '${authorName}'
+    AND Books.img_url IS NOT NULL `
       ;
     con.execute(sql).then((response) => {
       console.log(response);
@@ -209,7 +285,15 @@ function getTopNYRank(req, res) {
 function getNewNY(req, res) {
 
   connection.then((con) => {
-    const sql = 'FILL';
+    const sql = `WITH Temp AS (select books.*
+      from books
+      inner join nytimesseller
+      on books.isbn = nytimesseller.isbn
+      where nytimesseller.rank_last_week = 0 
+      and nytimesseller.rank != 0 
+      and books.publication_date is not null
+      order by books.publication_date DESC) 
+      SELECT DISTINCT Temp.isbn, Temp.title, Temp.img_url FROM Temp WHERE ROWNUM<=19`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -267,7 +351,8 @@ function getTopCategories(req, res) {
  */
 function getTopCategoryAuthorNY(req, res) {
   var inputcategory = req.params.categoryName;
-  console.log(inputcategory);
+  // console.log(inputcategory);
+  inputcategory= inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = ` WITH NYAuthorTemp AS
       (
@@ -330,7 +415,8 @@ function getTopCategoryAuthorNY(req, res) {
  */
 function getTopCategoryRated(req, res) {
   var inputcategory = req.params.categoryName;
-  console.log(inputcategory);
+  // console.log(inputcategory);
+  inputcategory= inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = `WITH bookC AS
     (SELECT Books.*, Author.authorname AS author, category.categoryname, category.categoryid
@@ -365,6 +451,7 @@ function getTopCategoryRated(req, res) {
 function getTopCategoryPublisher(req, res) {
   var inputcategory = req.params.categoryName;
   console.log("in publisher" + inputcategory);
+  inputcategory= inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = `WITH PublishersTemp AS
     (

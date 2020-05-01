@@ -157,22 +157,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// export default class Categories extends React.Component {
-//   constructor(props) {
-//     super(props);
-
-//     // The state maintained by this React Component. This component maintains the list of genres,
-//     // and a list of movies for a specified genre.
-//     this.state = {
-//       genres: [],
-//       movies: []
-//     }
-//   }
-// React function that is called when the page load.
-
-
-
-
 export default function Categories() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
@@ -181,6 +165,9 @@ export default function Categories() {
   const [nycategory, setNYCategories] = React.useState([]);
   const [publishercategory, setPublisherCategories] = React.useState([]);
   const [ratedcategory, setRatedCategories] = React.useState([]);
+  const [displayPubTitle, setDisplayPubTitle] = React.useState([]);
+  const [displayRateTitle, setDisplayRateTitle] = React.useState([]);
+  const [displayNYTitle, setDisplayNYTitle] = React.useState([]);
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -207,12 +194,10 @@ export default function Categories() {
 
         let categoryDivs = categoryList.rows.map(categoryName => (
 
-          // <GridListTile key={categoryName}>
           <Button variant="contained" size="medium" className={classes.margin} disableElevation onClick={() => callAllSections(categoryName)}>
             {categoryName}
           </Button>
-          // </GridListTile>
-
+    
         ));
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
@@ -247,7 +232,7 @@ export default function Categories() {
           var nybookDivs=[];
           console.log("nylist" + nybookList.rows.length);
           nybookDivs = nybookList.rows.map(nybookItem => (
-            // <Button variant="contained" >{nybookItem[1]}</Button>
+            
             <GridListTile key={nybookItem[0]} style={{ height: '240px' ,width:'160px' }}>
               <img src={nybookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : nybookItem[3]} alt={nybookItem[1]}  style={{ height: '240px' ,width:'160px' }}/>
               <GridListTileBar
@@ -266,6 +251,9 @@ export default function Categories() {
           //   // Set the state of the genres list to the value returned by the HTTP response from the server.
           setNYCategories(
             nybookDivs
+          );
+          setDisplayNYTitle(
+            'BestSelling NYTimes Books for ' + categoryName
           );
          
         }, err => {
@@ -313,6 +301,9 @@ export default function Categories() {
           setPublisherCategories(
             publisherBookDivs
           );
+          setDisplayPubTitle(
+            'Books by Top Publishers for ' + categoryName
+          );
         }, err => {
           // Print the error if there is one.
           console.log("some other error");
@@ -335,10 +326,7 @@ export default function Categories() {
           // A button which triggers the showMovies function for each genre.
           console.log(ratedBookList.rows.length);
           let ratedBookDivs = ratedBookList.rows.map(ratedBookItem => (
-            // <Button variant="contained" orientation="horizontal">{ratedBookItem[2]}</Button>
-            // <GridListTile key={ratedBookItem[0]}>
-            //   <img src={ratedBookItem[4]} alt={ratedBookItem[2]} />
-            // </GridListTile>
+        
             <GridListTile key={ratedBookItem[0]} style={{ height: '240px' ,width:'160px' }}>
               <img src={ratedBookItem[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : ratedBookItem[4]} alt={ratedBookItem[2]} style={{ height: '240px' ,width:'160px' }} />
               <GridListTileBar
@@ -357,12 +345,16 @@ export default function Categories() {
           setRatedCategories(
             ratedBookDivs
           );
+
+          setDisplayRateTitle(
+            'Top Rated Books for ' + categoryName
+          );
         }, err => {
           // Print the error if there is one.
           console.log(err);
         });
     }
-  });
+  },  []);
 
 
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
@@ -381,26 +373,20 @@ export default function Categories() {
               {categories}
             </Grid>
 
-            {/* </Paper> */}
-
-            {/* </Grid> */}
-            {/* Recent Deposits */}
-
-            {/* Recent Orders */}
-            {/* <Hidden xsDown> */}
+           
             <Grid item xs={12} >
               <Typography variant="subtitle1" gutterBottom>
-                Books by New York Times Authors
+                {displayNYTitle}
               </Typography>
               <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
                 {nycategory}
               </GridList>
             </Grid>
-            {/* </Hidden> */}
+       
 
             <Grid item xs={12} >
               <Typography variant="subtitle1" gutterBottom>
-                Books by Top Publishers
+                {displayPubTitle}
               </Typography>
               <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
                 {publishercategory}
@@ -408,7 +394,7 @@ export default function Categories() {
             </Grid>
             <Grid item xs={12} >
               <Typography variant="subtitle1" gutterBottom>
-                Top Rated Books
+                {displayRateTitle}
               </Typography>
               <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
                 {ratedcategory}
