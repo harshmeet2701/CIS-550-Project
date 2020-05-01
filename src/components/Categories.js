@@ -232,6 +232,7 @@ export default function Categories() {
     }
 
     function showNYAuthors(categoryName) {
+   
       fetch("http://localhost:8081/api/book/categories/nyauthor/" + categoryName,
         {
           method: 'GET' // The type of HTTP request.
@@ -243,12 +244,12 @@ export default function Categories() {
           console.log(err);
         }).then(nybookList => {
           if (!nybookList) return;
-          let image = './default_img.jpg';
-          console.log("nylist" + nybookList);
-          let nybookDivs = nybookList.rows.map(nybookItem => (
+          var nybookDivs=[];
+          console.log("nylist" + nybookList.rows.length);
+          nybookDivs = nybookList.rows.map(nybookItem => (
             // <Button variant="contained" >{nybookItem[1]}</Button>
-            <GridListTile key={nybookItem[0]}>
-              <img src={nybookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : nybookItem[3]} alt={nybookItem[1]} />
+            <GridListTile key={nybookItem[0]} style={{ height: '240px' ,width:'160px' }}>
+              <img src={nybookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : nybookItem[3]} alt={nybookItem[1]}  style={{ height: '240px' ,width:'160px' }}/>
               <GridListTileBar
                 title={nybookItem[1]}
                 classes={{
@@ -257,12 +258,16 @@ export default function Categories() {
                 }}
               />
             </GridListTile>
-          ));
-
+          )
+          );
+          setNYCategories(
+            []
+          );
           //   // Set the state of the genres list to the value returned by the HTTP response from the server.
           setNYCategories(
             nybookDivs
           );
+         
         }, err => {
           // Print the error if there is one.
           console.log(err);
@@ -271,6 +276,7 @@ export default function Categories() {
 
     function showPublisher(categoryName) {
       console.log("in publisherL" + categoryName)
+      var publisherBookList = [];
       fetch("http://localhost:8081/api/book/categories/publisher/" + categoryName,
         {
           method: 'GET' // The type of HTTP request.
@@ -286,11 +292,11 @@ export default function Categories() {
           // Map each genreObj in genreList to an HTML element:
 
           // A button which triggers the showMovies function for each genre.
-          console.log("lis:" + publisherBookList);
+          console.log("lis:" + publisherBookList.rows.length);
           let publisherBookDivs = publisherBookList.rows.map(publisherBookItem => (
             // <Button variant="contained" >{publisherBookItem[1]}</Button>
-            <GridListTile key={publisherBookItem[0]}>
-              <img src={publisherBookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : publisherBookItem[3]} alt={publisherBookItem[1]} />
+            <GridListTile key={publisherBookItem[0]} style={{ height: '240px' ,width:'160px' }}>
+              <img src={publisherBookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : publisherBookItem[3]} alt={publisherBookItem[1]} style={{ height: '240px' ,width:'160px' }} />
               <GridListTileBar
                 title={publisherBookItem[1]}
                 classes={{
@@ -300,7 +306,9 @@ export default function Categories() {
               />
             </GridListTile>
           ));
-
+          setPublisherCategories(
+            []
+          );
           //   // Set the state of the genres list to the value returned by the HTTP response from the server.
           setPublisherCategories(
             publisherBookDivs
@@ -325,14 +333,14 @@ export default function Categories() {
           if (!ratedBookList) return;
           // Map each genreObj in genreList to an HTML element:
           // A button which triggers the showMovies function for each genre.
-          console.log(ratedBookList);
+          console.log(ratedBookList.rows.length);
           let ratedBookDivs = ratedBookList.rows.map(ratedBookItem => (
             // <Button variant="contained" orientation="horizontal">{ratedBookItem[2]}</Button>
             // <GridListTile key={ratedBookItem[0]}>
             //   <img src={ratedBookItem[4]} alt={ratedBookItem[2]} />
             // </GridListTile>
-            <GridListTile key={ratedBookItem[0]}>
-              <img src={ratedBookItem[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : ratedBookItem[4]} alt={ratedBookItem[2]} />
+            <GridListTile key={ratedBookItem[0]} style={{ height: '240px' ,width:'160px' }}>
+              <img src={ratedBookItem[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : ratedBookItem[4]} alt={ratedBookItem[2]} style={{ height: '240px' ,width:'160px' }} />
               <GridListTileBar
                 title={ratedBookItem[2]}
                 classes={{
@@ -342,7 +350,9 @@ export default function Categories() {
               />
             </GridListTile>
           ));
-
+          setRatedCategories(
+            []
+          ); 
           //   // Set the state of the genres list to the value returned by the HTTP response from the server.
           setRatedCategories(
             ratedBookDivs
@@ -377,16 +387,16 @@ export default function Categories() {
             {/* Recent Deposits */}
 
             {/* Recent Orders */}
-            <Hidden xsDown>
-              <Grid item xs={12} >
-                <Typography variant="subtitle1" gutterBottom>
-                  Books by New York Times Authors
-                </Typography>
-                <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
-                  {nycategory}
-                </GridList>
-              </Grid>
-            </Hidden>
+            {/* <Hidden xsDown> */}
+            <Grid item xs={12} >
+              <Typography variant="subtitle1" gutterBottom>
+                Books by New York Times Authors
+              </Typography>
+              <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
+                {nycategory}
+              </GridList>
+            </Grid>
+            {/* </Hidden> */}
 
             <Grid item xs={12} >
               <Typography variant="subtitle1" gutterBottom>
