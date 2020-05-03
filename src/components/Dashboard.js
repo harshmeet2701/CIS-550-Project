@@ -9,6 +9,13 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Link from '@material-ui/core/Link';
 import SideBar from './SideBar';
+import GridList from '@material-ui/core/GridList';
+import GridListTile from '@material-ui/core/GridListTile';
+import GridListTileBar from '@material-ui/core/GridListTileBar';
+import IconButton from '@material-ui/core/IconButton';
+import StarBorderIcon from '@material-ui/icons/StarBorder';
+import { useState, useEffect } from 'react';
+
 // import Chart from './Chart';
 // import Deposits from './Deposits';
 // import Orders from './Orders';
@@ -118,6 +125,10 @@ export default function Dashboard() {
   };
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
+  useEffect(() => {
+    console.log('In Dashboard');
+  })
+
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -125,29 +136,26 @@ export default function Dashboard() {
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
-          <Grid container spacing={3}>
-            {/* Chart */}
-            <Grid item xs={12} md={8} lg={9}>
-              <Paper className={fixedHeightPaper}>
-                {/* <Chart /> */}
-              </Paper>
-            </Grid>
-            {/* Recent Deposits */}
-            <Grid item xs={12} md={4} lg={3}>
-              <Paper className={fixedHeightPaper}>
-                {/* <Deposits /> */}
-              </Paper>
-            </Grid>
-            {/* Recent Orders */}
-            <Grid item xs={12}>
-              <Paper className={classes.paper}>
-                {/* <Orders /> */}
-              </Paper>
-            </Grid>
+          <Grid container spacing={4}>
+          <Grid item xs={12} spacing={1}>
+             <Typography variant="subtitle1" gutterBottom style = {{fontSize: '1.5em'}}>
+                Books by liked by you
+              </Typography>
+
+              <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
+              <GridListTile key={1}>
+            <img src={'https://i.imgur.com/sJ3CT4V.gif'}  alt={'Random'} />
+            <GridListTileBar
+              title={'njkas'}
+              classes={{
+                root: classes.titleBar,
+                title: classes.title,
+              }}
+            />
+          </GridListTile>
+              </GridList>
           </Grid>
-          <Box pt={4}>
-            <Copyright />
-          </Box>
+          </Grid>
         </Container>
       </main>
     </div>

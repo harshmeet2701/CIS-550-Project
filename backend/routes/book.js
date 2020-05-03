@@ -46,15 +46,11 @@ function getBookForTitle(req, res) {
 
   connection.then((con) => {
     var searchValue = req.params.title;
-    const sql = `SELECT DISTINCT books.isbn, books.title, author.authorname, authorwiki.wikiurl, books.img_url, books.description 
+    const sql = `SELECT DISTINCT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages, MemberChoices.readflag, MemberChoices.likeFlag 
     from Books
-    inner join bookauthor
-    on books.isbn = bookauthor.isbn
-    inner join author
-    on bookauthor.authorid = author.authorid
-    left join authorwiki ON authorwiki.authorid=author.authorid
+    left join MemberChoices on Books.isbn = MemberChoices.isbn
     where lower(books.title) like '%${searchValue}%'
-    AND rownum <=18`;
+    AND rownum <=50`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);

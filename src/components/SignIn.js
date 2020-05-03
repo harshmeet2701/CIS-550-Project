@@ -292,7 +292,7 @@ export default function SignInSide() {
           dispatch(login(resp.email));
           // Session / Cache storage if Remember me
           const curr = new Date();
-          let expireDuration = 1800;
+          let expireDuration = 100000;
           let expirationDate = new Date(curr.getTime() + expireDuration * 1000);
           const sessionObject = {
             expiresAt: expirationDate,
