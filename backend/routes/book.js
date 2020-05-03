@@ -47,7 +47,7 @@ function getBookForTitle(req, res) {
 
   connection.then((con) => {
     var searchValue = req.params.title;
-    const sql = `SELECT DISTINCT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages, MemberChoices.readflag, MemberChoices.likeFlag 
+    const sql = `SELECT DISTINCT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages, MemberChoices.readflag, MemberChoices.likeFlag, MemberChoices.rating 
     from Books
     left join MemberChoices on Books.isbn = MemberChoices.isbn
     where lower(books.title) like '%${searchValue}%'
@@ -63,7 +63,7 @@ function getBookForTitle(req, res) {
 function getBookForIsbn(req, res) {
   var searchValue = req.params.isbn;
   connection.then((con) => {
-    const sql = `SELECT DISTINCT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages, MemberChoices.readflag, MemberChoices.likeFlag 
+    const sql = `SELECT DISTINCT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages, MemberChoices.readflag, MemberChoices.likeFlag, MemberChoices.rating 
     from Books
     left join MemberChoices on Books.isbn = MemberChoices.isbn
     where lower(books.isbn) like '%${searchValue}%'
@@ -80,7 +80,7 @@ function getBookForAuthor(req, res) {
   var searchValue = req.params.author;
   console.log(searchValue);
   connection.then((con) => {
-    const sql = `SELECT DISTINCT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages, MemberChoices.readflag, MemberChoices.likeFlag 
+    const sql = `SELECT DISTINCT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages, MemberChoices.readflag, MemberChoices.likeFlag, MemberChoices.rating 
     from Books
     join BookAuthor on BookAuthor.isbn = Books.isbn
     join Author on Author.authorId = BookAuthor.authorId

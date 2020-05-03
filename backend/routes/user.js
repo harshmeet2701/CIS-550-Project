@@ -12,6 +12,7 @@ router.post('/changePassword', (req, res) => changePassword(req, res));
 router.post('/loginThirdParty', (req, res) => loginThirdParty(req, res));
 router.post('/likeBook/:isbn', (req, res) => likeBook(req, res));
 router.post('/readBook/:isbn', (req, res) => readBook(req, res));
+router.post('/rateBook/:isbn', (req, res) => rateBook(req, res));
 // router.get('/recommended/nyauthor', (req, res) => getNYAuthorsForYou(req,res));
 // router.get('/recommended/categories', (req, res) => getBooksOnCategories(req,res));
 // router.get('/recommended/author', (req, res) => getAuthorsForYou(req,res));
@@ -357,6 +358,56 @@ function readBook(req, res) {
       } 
      });
 
+  });
+}
+
+function rateBook(req, res) {
+  connection.then((con) => {
+    const email = req.body.email;
+    const isbn = req.params.isbn;
+    const rating = req.body.rating;
+
+    const sql = `UPDATE MemberChoices SET rating='${rating}' WHERE email='${email}' and isbn='${isbn}'`;
+
+    con.execute(sql, {}, {autoCommit: true}, function (err, rows) { 
+      if(err){
+        console.log(err);
+        res.status(400).json({message: err.message});
+        return;
+      } else {
+        console.log(rows);
+        
+        if(rows.rowsAffected === 0){
+          // Insert Entry
+          const insertSql = `INSERT INTO MemberChoices (email, isbn, rating) VALUES ('${email}', '${isbn}', '${rating}')`;
+
+          con.execute(insertSql, {}, {autoCommit: true}, function (err, rows) {
+            if(err) {
+              console.log(err);
+              res.status(400).json({message: err.message});
+              return;
+            } else {
+              if(rows.rowsAffected === 1){
+                res.status(201).json({
+                  message: 'success',
+                  email: email
+                })
+              }else {
+                res.status(500).json({message: "Not able to insert entry in database"});
+              }
+              console.log(rows);
+            }
+          });
+
+        } else {
+          res.status(201).json({
+            message: 'success',
+            email: email
+          })
+        }
+      } 
+
+    });
   });
 }
 

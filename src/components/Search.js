@@ -30,6 +30,8 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import {useSelector} from 'react-redux';
+import Rating from '@material-ui/lab/Rating';
+import Box from '@material-ui/core/Box';
 
 function Copyright() {
   return (
@@ -208,6 +210,9 @@ const useStyles = makeStyles((theme) => ({
   },
   table: {
     boxShadow: "0 16px 70px -12.125px rgba(0,0,0,0.3)",
+  }, 
+  rating: {
+    marginTop: '3%',
   }
 }));
 
@@ -216,6 +221,8 @@ const cards = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });  
+
+var ratings = [];
 
 export default function Search() {
   const classes = useStyles();
@@ -226,6 +233,8 @@ export default function Search() {
   const [selectedBook, setSelBook] = useState("");
   const [openDailogue, setOpenDailogue] = React.useState(false);
   const [authors, setAuthors] = useState([]);
+  const [selectedrating, setRating] = useState(0);
+  const [index, setIndex] = useState(-1);
   const auth = useSelector(state => state.auth);
 
   const handleDrawerOpen = () => {
@@ -259,16 +268,23 @@ export default function Search() {
       })
     .then(resp => resp.json())
     .then(authorList => {
-      if (!authorList) return;
       console.log('getAuthors: ',authorList);
-      setAuthors(authorList.rows);
+      if (!authorList) return;
+      
+      if (!authorList.rows) {
+        setAuthors([]);
+      } else {
+        setAuthors(authorList.rows);
+      }
     })  
   }
 
-  const handleListItemClick = (book) => {
-    getAuthors(book[0])
-    setOpenDailogue(true);
+  const handleListItemClick = (book, index) => {
+    getAuthors(book[0]);
     setSelBook(book);
+    setIndex(index);    
+    setRating(ratings[index]);
+    setOpenDailogue(true);
   };
 
   const handleChange = (event) => {
@@ -296,7 +312,29 @@ export default function Search() {
     setOpen(false);
   };
 
+  const saveRating = (isbn) => {
+    console.log('Sel Rating:', selectedrating);
+    ratings[index] =selectedrating;
+    console.log('Ratings:', ratings[index]);
+
+    fetch('http://localhost:8081/api/user/rateBook/' + isbn, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'    
+        },
+        body:JSON.stringify({email: auth.auth, rating: selectedrating})
+      })
+      .then(resp => resp.json())
+      .then(resp => {
+        if(resp.message === 'success') {
+          console.log('Rating Updated');
+        }
+      });
+  }
+
   const handleCloseDailog = () => {
+    saveRating(selectedBook[0]);
     setOpenDailogue(false);
   }
 
@@ -390,9 +428,12 @@ export default function Search() {
         console.log(err);
       }).then(bookList => {
         if (!bookList) return;
-        console.log(bookList);
+        // console.log(bookList);
+        ratings = [];
         
-        let bookDivs = bookList.rows.map((book, i) => (
+        let bookDivs = bookList.rows.map((book, i) => {
+          ratings.push(book[14]);
+          return (
           < Grid item key={i} xs={3} style={{ height: '400px', width: '180px' }}>
           <Card className={classes.card}>
             <CardMedia className ={classes.cardMedia}
@@ -404,7 +445,7 @@ export default function Search() {
               </Typography>
             </CardContent>
             <CardActions style={{width:'100%'}}>
-            <Button size="medium" color="primary" onClick = {() => handleListItemClick(book)}>
+            <Button size="medium" color="primary" onClick = {() => handleListItemClick(book, i)}>
                 View
             </Button>
             <div style={{width: '100%', textAlign:'right'}}>  
@@ -419,7 +460,8 @@ export default function Search() {
             </CardActions>
           </Card>
          </Grid >
-        ));
+        )
+      });
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
         setBooks(
@@ -445,7 +487,10 @@ export default function Search() {
       }).then(authorList => {
         if (!authorList) return;
 
-        let authorDivs = authorList.rows.map((author, i) => (
+        ratings = [];
+        let authorDivs = authorList.rows.map((author, i) => {
+          ratings.push(author[14]);
+          return (
           < Grid item key={i} xs={3} style={{ height: '400px', width: '180px' }}>
           <Card className={classes.card}>
             <CardMedia className ={classes.cardMedia}
@@ -472,7 +517,8 @@ export default function Search() {
             </CardActions>
           </Card>
          </Grid >
-        ));
+        )
+      });
         
         // Set the state of the genres list to the value returned by the HTTP response from the server.
         setBooks(
@@ -497,7 +543,10 @@ export default function Search() {
       }).then(isbnList => {
         if (!isbnList) return;
 
-        let isbnDivs = isbnList.rows.map((isbn, i) => (
+        ratings = [];
+        let isbnDivs = isbnList.rows.map((isbn, i) => {
+          ratings.push(isbn[14]);
+          return (
           < Grid item key={i} xs={3} style={{ height: '400px', width: '180px' }}>
           <Card className={classes.card}>
             <CardMedia className ={classes.cardMedia}
@@ -524,7 +573,8 @@ export default function Search() {
             </CardActions>
           </Card>
          </Grid >
-        ));
+        )
+      });
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
         setBooks(
@@ -630,6 +680,18 @@ export default function Search() {
               <div>
                 {/* <img src= {'https://i.imgur.com/sJ3CT4V.gif'} style= {{width: "180%", objectFit: "contain",  boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)"}} /> */}
                 <a href= {selectedBook[2] ? selectedBook[2]: 'https://i.imgur.com/sJ3CT4V.gif'} target={'_blank'}><img alt = {'Book'} src= {selectedBook[2] ? selectedBook[2]:'https://i.imgur.com/sJ3CT4V.gif'} style= {{width: "100%", objectFit: "contain",  boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)"}} /></a>
+
+                <Box component="fieldset" mb={3} borderColor="transparent">
+                <Typography component="legend">Rate Book</Typography>
+                <Rating
+                  name="book-rating"
+                  value={selectedrating ? selectedrating : 0}
+                  onChange={(event, newValue) => {
+                    // sel[index] = newValue;
+                    setRating(newValue);
+                  }}
+                />
+                </Box>
               </div>
             </Grid>
 
