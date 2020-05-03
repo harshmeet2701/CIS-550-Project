@@ -418,7 +418,13 @@ function getTopCategoryPublisher(req, res) {
 function getMovies(req, res) {
 
   connection.then((con) => {
-    const sql = 'FILL';
+    const sql = `SELECT Books.isbn, Books.title, Author.authorName,bookmovie.movietitle, bookmovie.moviereleaseyear, Books.URL
+                from BookMovie
+                JOIN Books ON Books.title = BOOKMOVIE.booktitle
+                JOIN BookAuthor ON Books.isbn = BookAuthor.isbn
+                JOIN Author ON Author.authorId = BookAuthor.authorid
+                where regexp_like(bookmovie.moviereleaseyear, '^[[:digit:]]+$') 
+                order by moviereleaseyear desc`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
