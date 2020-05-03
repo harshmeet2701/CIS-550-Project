@@ -108,27 +108,27 @@ function getAuthors(req, res) {
     left join AuthorWiki on AuthorWiki.authorId = BookAuthor.authorId
     where BookAuthor.isbn ='${isbn}'`;
 
-    con.execute(sql,{}, {
+    con.execute(sql, {}, {
       outFormat: oracledb.OUT_FORMAT_OBJECT   // query result format
-    }, function(err, response) {
-      const result = response.rows;      
+    }, function (err, response) {
+      const result = response.rows;
 
-      if(err) {
-        res.status(501).json({message: err.message});
+      if (err) {
+        res.status(501).json({ message: err.message });
       }
 
-      if(result.length === 0){
+      if (result.length === 0) {
         return res.status(401).json({
           message: 'No User Found!'
         });
-      }else {
+      } else {
         res.status(201).json(response);
-      }      
-      
+      }
+
     });
   }, err => {
     console.log(err);
-    res.status(504).json({message: err.message});
+    res.status(504).json({ message: err.message });
   });
 }
 
@@ -241,7 +241,7 @@ function getTopAuthor(req, res) {
  */
 function getTopNYPublishingBooks(req, res) {
   var pubName = req.params.pubName;
-  pubName= pubName.replace("\'", "\'\'");
+  pubName = pubName.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = `WITH Temp AS
     (SELECT Books.isbn, Books.title, Books.img_url
@@ -268,10 +268,10 @@ function getTopNYPublishingBooks(req, res) {
  */
 function getTopNYAuthorBooks(req, res) {
   var authorName = req.params.authorName;
-  authorName= authorName.replace("\'", "\'\'");
+  authorName = authorName.replace("\'", "\'\'");
   console.log("authorName" + authorName);
   connection.then((con) => {
-    const sql = `select DISTINCT(Books.isbn), Books.title, Books.img_url
+    const sql = `select DISTINCT(Books.isbn), Books.title, Books.img_url, Books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages
     from Books
     inner join bookauthor
     on books.isbn = bookauthor.isbn
@@ -379,7 +379,7 @@ function getTopCategories(req, res) {
 function getTopCategoryAuthorNY(req, res) {
   var inputcategory = req.params.categoryName;
   // console.log(inputcategory);
-  inputcategory= inputcategory.replace("\'", "\'\'");
+  inputcategory = inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = ` WITH NYAuthorTemp AS
       (
@@ -443,7 +443,7 @@ function getTopCategoryAuthorNY(req, res) {
 function getTopCategoryRated(req, res) {
   var inputcategory = req.params.categoryName;
   // console.log(inputcategory);
-  inputcategory= inputcategory.replace("\'", "\'\'");
+  inputcategory = inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = `WITH bookC AS
     (SELECT Books.*, Author.authorname AS author, category.categoryname, category.categoryid
@@ -478,7 +478,7 @@ function getTopCategoryRated(req, res) {
 function getTopCategoryPublisher(req, res) {
   var inputcategory = req.params.categoryName;
   console.log("in publisher" + inputcategory);
-  inputcategory= inputcategory.replace("\'", "\'\'");
+  inputcategory = inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = `WITH PublishersTemp AS
     (
