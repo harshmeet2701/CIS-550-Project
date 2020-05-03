@@ -2,12 +2,11 @@ import React from 'react';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from '@material-ui/core/Link';
 import SideBar from './SideBar';
 import Button from '@material-ui/core/Button';
@@ -15,17 +14,10 @@ import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
-import { sizing } from '@material-ui/system';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import IconButton from '@material-ui/core/IconButton';
-import FavoriteBorderOutlinedIcon from '@material-ui/icons/FavoriteBorderOutlined';
-import FavoriteOutlinedIcon from '@material-ui/icons/FavoriteOutlined';
-import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
-import Tooltip from '@material-ui/core/Tooltip';
-import BookmarkIcon from '@material-ui/icons/Bookmark';
-import Divider from '@material-ui/core/Divider';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import CloseIcon from '@material-ui/icons/Close';
@@ -38,10 +30,6 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import {useSelector} from 'react-redux';
-
-// import Chart from './Chart';
-// import Deposits from './Deposits';
-// import Orders from './Orders';
 
 function Copyright() {
   return (
@@ -237,6 +225,7 @@ export default function Search() {
   const [searchText, setsearchText] = useState("");
   const [selectedBook, setSelBook] = useState("");
   const [openDailogue, setOpenDailogue] = React.useState(false);
+  const [authors, setAuthors] = useState([]);
   const auth = useSelector(state => state.auth);
 
   const handleDrawerOpen = () => {
@@ -261,17 +250,19 @@ export default function Search() {
 
   const getAuthors = (isbn)=> {
 
-    // fetch("http://localhost:8081/api/book/search/title/" + searchCriteria.toLowerCase(),
-    // {
-    //   method: 'GET' // The type of HTTP request.
-    // }).then(res => {
-    //   // Convert the response data to a JSON.
-    //   return res.json();
-    // }, err => {
-    //   // Print the error if there is one.
-    //   console.log(err);
-    // })
-
+    fetch('http://localhost:8081/api/book/getAuthors/' + isbn, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'    
+        }
+      })
+    .then(resp => resp.json())
+    .then(authorList => {
+      if (!authorList) return;
+      console.log('getAuthors: ',authorList);
+      setAuthors(authorList.rows);
+    })  
   }
 
   const handleListItemClick = (book) => {
@@ -286,6 +277,10 @@ export default function Search() {
   };
 
   const handleChangeSearch = (event1) => {
+    if(criteria === '') {
+      setBooks([]);
+    }
+
     if (criteria === 'title') {
       showTitle(event1.target.value);
     }
@@ -305,14 +300,81 @@ export default function Search() {
     setOpenDailogue(false);
   }
 
-  const handleLikedBooks = (event) => {
-   console.log(event.target);
-   let nm = event.target;
-   nm.innerHTML = 'UNLIKE';
+  const handleLikedBooks = (event, isbn) => {
+   const button = event.target;
+
+   if(button.innerHTML === 'Like') {
+     // fetch call for Like make likeFlag: 1
+     fetch('http://localhost:8081/api/user/likeBook/'+isbn, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'    
+        },
+        body:JSON.stringify({email: auth.auth, id:1})
+      })
+      .then(resp => resp.json())
+      .then(resp => {
+        if(resp.message === 'success') {
+          button.innerHTML = 'UnLike';
+        }
+      });
+   }else if(button.innerHTML === 'UnLike') {
+     // fetch call for Unlike make likeFlag: 0
+     fetch('http://localhost:8081/api/user/likeBook/'+isbn, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'    
+        },
+        body:JSON.stringify({email: auth.auth, id:0})
+      })
+      .then(resp => resp.json())
+      .then(resp => {
+        if(resp.message === 'success') {
+          button.innerHTML = 'Like';
+        }
+      });
+   }
   }
 
-  const handleReadBooks = (isbn) => {
-    
+  const handleReadBooks = (event, isbn) => {
+    const button = event.target;
+
+    if(button.innerHTML === 'Mark Read') {
+      // fetch call for Read make readFlag: 1
+      fetch('http://localhost:8081/api/user/readBook/'+isbn, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'    
+        },
+        body:JSON.stringify({email: auth.auth, id:1})
+      })
+      .then(resp => resp.json())
+      .then(resp => {
+        if(resp.message === 'success') {
+          button.innerHTML = 'Mark UnRead';
+        }
+      });
+
+    }else if(button.innerHTML === 'Mark UnRead') {
+      // fetch call for UnRead make readFlag: 0
+      fetch('http://localhost:8081/api/user/readBook/'+isbn, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'    
+        },
+        body:JSON.stringify({email: auth.auth, id:0})
+      })
+      .then(resp => resp.json())
+      .then(resp => {
+        if(resp.message === 'success') {
+          button.innerHTML = 'Mark Read';
+        }
+      });
+    }
   }
 
   function showTitle(searchCriteria) {
@@ -346,12 +408,12 @@ export default function Search() {
                 View
             </Button>
             <div style={{width: '100%', textAlign:'right'}}>  
-              <Button color="secondary" onClick={(event) => {handleLikedBooks(event)}}>
-                Like
+              <Button color="secondary" onClick={(event) => {handleLikedBooks(event, book[0])}}>
+                {book[13] ? "UnLike" : "Like" }
               </Button>
 
-              <Button color="primary" onClick={(event) => {handleLikedBooks(event)}}>
-                Mark Read
+              <Button color="primary" onClick={(event) => {handleReadBooks(event, book[0])}}>
+                {book[12] ? 'Mark UnRead': 'Mark Read'}
               </Button>
             </div>
             </CardActions>
@@ -371,7 +433,7 @@ export default function Search() {
 
   function showAuthors(searchCriteria) {
     console.log("Value " + searchCriteria);
-    fetch("http://localhost:8081/api/book/search/author/" + searchCriteria,
+    fetch("http://localhost:8081/api/book/search/author/" + searchCriteria.toLowerCase(),
       {
         method: 'GET' // The type of HTTP request.
       }).then(res => {
@@ -382,24 +444,6 @@ export default function Search() {
         console.log(err);
       }).then(authorList => {
         if (!authorList) return;
-        // let authorDivs = authorList.rows.map((author, i) => (
-        //   console.log(author[2]),
-        //   < Grid item key={author.isbn} xs={12} sm={6} md={4} style={{ height: '400px', width: '180px' }}>
-        //     <Card className={classes.card} style={{ width: '180px' }}>
-        //       <CardMedia
-        //         className={classes.cardMedia}
-        //         image={author[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : author[4]} style={{ height: '300px', width: '175px' }}
-        //       />
-        //       <CardContent className={classes.cardContent}>
-        //         <Typography gutterBottom>
-        //           {author[1]}
-        //         </Typography>
-        //       </CardContent>
-        //       <CardActions>
-        //       </CardActions>
-        //     </Card>
-        //   </Grid >
-        // ));
 
         let authorDivs = authorList.rows.map((author, i) => (
           < Grid item key={i} xs={3} style={{ height: '400px', width: '180px' }}>
@@ -417,12 +461,12 @@ export default function Search() {
                 View
             </Button>
             <div style={{width: '100%', textAlign:'right'}}>  
-              <Button color="secondary" onClick={(event) => {handleLikedBooks(event)}}>
-                Like
+              <Button color="secondary" onClick={(event) => {handleLikedBooks(event, author[0])}}>
+                {author[13] ? "UnLike" : "Like" }
               </Button>
 
-              <Button color="primary" onClick={(event) => {handleLikedBooks(event)}}>
-                Mark Read
+              <Button color="primary" onClick={(event) => {handleReadBooks(event, author[0])}}>
+                {author[12] ? 'Mark UnRead': 'Mark Read'}
               </Button>
             </div>
             </CardActions>
@@ -441,7 +485,7 @@ export default function Search() {
   }
 
   function showISBN(searchCriteria) {
-    fetch("http://localhost:8081/api/book/search/isbn/" + searchCriteria,
+    fetch("http://localhost:8081/api/book/search/isbn/" + searchCriteria.toLowerCase(),
       {
         method: 'GET' // The type of HTTP request.
       }).then(res => {
@@ -454,22 +498,32 @@ export default function Search() {
         if (!isbnList) return;
 
         let isbnDivs = isbnList.rows.map((isbn, i) => (
-          console.log(isbn[4]),
-          < Grid item key={isbn.isbn} xs={12} sm={6} md={4} style={{ height: '400px', width: '180px' }}>
-            <Card className={classes.card} style={{ width: '180px' }}>
-              <CardMedia
-                className={classes.cardMedia}
-                image={isbn[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : isbn[4]} style={{ height: '300px', width: '175px' }}
-              />
-              <CardContent className={classes.cardContent}>
-                <Typography gutterBottom>
-                  {isbn[1]}
-                </Typography>
-              </CardContent>
-              <CardActions>
-              </CardActions>
-            </Card>
-          </Grid >
+          < Grid item key={i} xs={3} style={{ height: '400px', width: '180px' }}>
+          <Card className={classes.card}>
+            <CardMedia className ={classes.cardMedia}
+              image={isbn[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : isbn[2]}
+            />
+            <CardContent className={classes.cardContent}>
+              <Typography gutterBottom variant="h7" component="h4">
+                {isbn[1]}
+              </Typography>
+            </CardContent>
+            <CardActions style={{width:'100%'}}>
+            <Button size="medium" color="primary" onClick = {() => handleListItemClick(isbn)}>
+                View
+            </Button>
+            <div style={{width: '100%', textAlign:'right'}}>  
+              <Button color="secondary" onClick={(event) => {handleLikedBooks(event, isbn[0])}}>
+              {isbn[13] ? "UnLike" : "Like" }
+              </Button>
+
+              <Button color="primary" onClick={(event) => {handleReadBooks(event, isbn[0])}}>
+                {isbn[12] ? 'Mark UnRead': 'Mark Read'}
+              </Button>
+            </div>
+            </CardActions>
+          </Card>
+         </Grid >
         ));
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
@@ -690,9 +744,21 @@ export default function Search() {
                     </Typography>
                     </TableCell>
                   <TableCell align="left" >
-                    <Typography variant="h7">
-                      
-                    </Typography>
+
+                  <Table aria-label="simple table">
+                    {authors.map((author, i) => {
+                      return (
+                        <TableRow>
+                          <TableCell align="left" >
+                            <Typography variant="h7">
+                      {author.WIKIURL ? <a href={author.WIKIURL} target={'_blank'}> {author.AUTHORNAME} </a> : author.AUTHORNAME}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                    </Table>
+
                   </TableCell>
                 </TableRow>
 
@@ -744,9 +810,9 @@ export default function Search() {
             </Grid>
           </Container>
           </Dialog>          
-          <Box pt={4}>
+          {/* <Box pt={4}>
             <Copyright />
-          </Box>
+          </Box> */}
         </Container>
       </main>
     </div>

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-// const jwt = require("jsonwebtoken");
+const oracledb = require('oracledb');
 const connection = require('../models/database');
 
 router.get('/', (req, res) => getBooks(req, res));
@@ -22,6 +22,7 @@ router.get('/categories/nyauthor/:categoryName', (req, res) => getTopCategoryAut
 router.get('/categories/publisher/:categoryName', (req, res) => getTopCategoryPublisher(req, res));
 router.get('/categories/topRated/:categoryName', (req, res) => getTopCategoryRated(req, res));
 router.get('/movies', (req, res) => getMovies(req, res));
+router.get('/getAuthors/:isbn', (req, res) => getAuthors(req, res));
 
 
 function getBooks(req, res) {
@@ -62,19 +63,14 @@ function getBookForTitle(req, res) {
 function getBookForIsbn(req, res) {
   var searchValue = req.params.isbn;
   connection.then((con) => {
-    const sql = `SELECT DISTINCT books.isbn, books.title, author.authorname, authorwiki.wikiurl, books.img_url, books.description
+    const sql = `SELECT DISTINCT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages, MemberChoices.readflag, MemberChoices.likeFlag 
     from Books
-    inner join bookauthor
-    on books.isbn = bookauthor.isbn
-    inner join author
-    on bookauthor.authorid = author.authorid
-    left join authorwiki
-    on authorwiki.authorid=author.authorid
-    where books.isbn like '%${searchValue}%'
-    AND rownum <=18`;
+    left join MemberChoices on Books.isbn = MemberChoices.isbn
+    where lower(books.isbn) like '%${searchValue}%'
+    AND rownum <=50`;
     con.execute(sql).then((response) => {
       console.log(response);
-      res.json(response);
+      res.status(201).json(response);
     })
   });
 }
@@ -84,20 +80,55 @@ function getBookForAuthor(req, res) {
   var searchValue = req.params.author;
   console.log(searchValue);
   connection.then((con) => {
-    const sql = `SELECT DISTINCT books.isbn, books.title, author.authorname, authorwiki.wikiurl, books.img_url, books.description
+    const sql = `SELECT DISTINCT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages, MemberChoices.readflag, MemberChoices.likeFlag 
     from Books
-    inner join bookauthor
-    on books.isbn = bookauthor.isbn
-    inner join author
-    on bookauthor.authorid = author.authorid
-    left join authorwiki
-    on authorwiki.authorid = author.authorid
-    where lower(author.authorName) like '%${searchValue}%'
-    AND rownum <= 18`;
+    join BookAuthor on BookAuthor.isbn = Books.isbn
+    join Author on Author.authorId = BookAuthor.authorId
+    left join MemberChoices on Books.isbn = MemberChoices.isbn
+    where lower(Author.authorName) like '%${searchValue}%'
+    AND rownum <=50`;
+
     con.execute(sql).then((response) => {
       console.log(response);
-      res.json(response);
-    })
+      res.status(201).json(response);
+    }, err => {
+      console.log(err);
+      res.status(404).json(err);
+    });
+  });
+}
+
+function getAuthors(req, res) {
+  connection.then((con) => {
+    const isbn = req.params.isbn;
+
+    const sql = `select author.authorname, authorwiki.wikiurl
+    from BookAuthor
+    join Author on BookAuthor.authorid = Author.authorId
+    left join AuthorWiki on AuthorWiki.authorId = BookAuthor.authorId
+    where BookAuthor.isbn ='${isbn}'`;
+
+    con.execute(sql,{}, {
+      outFormat: oracledb.OUT_FORMAT_OBJECT   // query result format
+    }, function(err, response) {
+      const result = response.rows;      
+
+      if(err) {
+        res.status(501).json({message: err.message});
+      }
+
+      if(result.length === 0){
+        return res.status(401).json({
+          message: 'No User Found!'
+        });
+      }else {
+        res.status(201).json(response);
+      }      
+      
+    });
+  }, err => {
+    console.log(err);
+    res.status(504).json({message: err.message});
   });
 }
 

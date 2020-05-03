@@ -10,6 +10,8 @@ router.post('/register', (req, res) => addUser(req, res));
 router.post('/login', (req, res) => loginUser(req, res));
 router.post('/changePassword', (req, res) => changePassword(req, res));
 router.post('/loginThirdParty', (req, res) => loginThirdParty(req, res));
+router.post('/likeBook/:isbn', (req, res) => likeBook(req, res));
+router.post('/readBook/:isbn', (req, res) => readBook(req, res));
 // router.get('/recommended/nyauthor', (req, res) => getNYAuthorsForYou(req,res));
 // router.get('/recommended/categories', (req, res) => getBooksOnCategories(req,res));
 // router.get('/recommended/author', (req, res) => getAuthorsForYou(req,res));
@@ -241,6 +243,120 @@ function loginThirdParty(req, res) {
       console.log(err);
       res.status(500).json({message: err.message});
     });
+  });
+}
+
+function likeBook(req, res) {
+  connection.then((con) => {
+    const email = req.body.email;
+    const isbn = req.params.isbn;
+    const identifier = req.body.id;
+
+    const sql = `UPDATE MemberChoices SET likeFlag='${identifier}' WHERE email='${email}' and isbn='${isbn}'`;
+
+    // con.execute(sql).then((response)=> {
+    //   const result = response.rows;
+    //   if(result.length === 1) {
+        
+    //   } else {
+
+    //     const firstName = req.body.firstName;
+    //     const lastName = req.body.lastName;
+    //     const password = req.body.password;
+
+    //     const insertSql = `INSERT INTO Member (email, password, first_name, last_name) VALUES ('${email}', '${password}', '${firstName}', '${lastName}')`;
+    //   }
+    // });
+
+
+    con.execute(sql, {}, {autoCommit: true}, function (err, rows) { 
+      if(err){
+        console.log(err);
+        res.status(400).json({message: err.message});
+        return;
+      } else {
+        console.log(rows);
+        
+        if(rows.rowsAffected === 0){
+          // Insert Entry
+          const insertSql = `INSERT INTO MemberChoices (email, isbn, likeFlag) VALUES ('${email}', '${isbn}', '${identifier}')`;
+
+          con.execute(insertSql, {}, {autoCommit: true}, function (err, rows) {
+            if(err) {
+              console.log(err);
+              res.status(400).json({message: err.message});
+              return;
+            } else {
+              if(rows.rowsAffected === 1){
+                res.status(201).json({
+                  message: 'success',
+                  email: email
+                })
+              }else {
+                res.status(500).json({message: "Not able to insert entry in database"});
+              }
+              console.log(rows);
+            }
+          });
+
+        } else {
+          res.status(201).json({
+            message: 'success',
+            email: email
+          })
+        }
+      } 
+    });
+  });
+}
+
+function readBook(req, res) {
+  connection.then((con) => {
+    const email = req.body.email;
+    const isbn = req.params.isbn;
+    const identifier = req.body.id;
+
+    const sql = `UPDATE MemberChoices SET readFlag='${identifier}' WHERE email='${email}' and isbn='${isbn}'`;
+
+    con.execute(sql, {}, {autoCommit: true}, function (err, rows) { 
+      if(err){
+        console.log(err);
+        res.status(400).json({message: err.message});
+        return;
+      } else {
+        console.log(rows);
+        
+        if(rows.rowsAffected === 0){
+          // Insert Entry
+          const insertSql = `INSERT INTO MemberChoices (email, isbn, readFlag) VALUES ('${email}', '${isbn}', '${identifier}')`;
+
+          con.execute(insertSql, {}, {autoCommit: true}, function (err, rows) {
+            if(err) {
+              console.log(err);
+              res.status(400).json({message: err.message});
+              return;
+            } else {
+              if(rows.rowsAffected === 1){
+                res.status(201).json({
+                  message: 'success',
+                  email: email
+                })
+              }else {
+                res.status(500).json({message: "Not able to insert entry in database"});
+              }
+              console.log(rows);
+            }
+          });
+
+        } else {
+          res.status(201).json({
+            message: 'success',
+            email: email
+          })
+        }
+      } 
+     });
+
   });
 }
 
