@@ -12,8 +12,8 @@
 /build
 
 # credentials
-/backend/models/db-config.js
-/src/components/config.js
+backend/models/db-config.js
+src/components/config.js
 
 # misc
 .DS_Store
