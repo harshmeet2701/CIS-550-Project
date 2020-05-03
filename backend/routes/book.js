@@ -244,13 +244,13 @@ function getTopNYPublishingBooks(req, res) {
   pubName = pubName.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = `WITH Temp AS
-    (SELECT Books.isbn, Books.title, Books.img_url
+    (SELECT Books.*
     FROM Books
     INNER JOIN NYTimesSeller
     ON Books.isbn = NYTimesSeller.isbn
     WHERE Books.publisher = '${pubName}'
     ORDER BY NYTimesSeller.weeks_on_list DESC)
-    SELECT DISTINCT(Temp.isbn) as isbn, Temp.title, Temp.img_url
+    SELECT DISTINCT(Temp.isbn) as isbn, Temp.title, Temp.img_url, Temp.description, Temp.url, Temp.publisher, Temp.publication_place, Temp.publication_date, Temp.rating, Temp.num_pages, Temp.lang
     FROM Temp WHERE rownum <=20
     `;
     con.execute(sql).then((response) => {
@@ -320,7 +320,9 @@ function getNewNY(req, res) {
       and nytimesseller.rank != 0 
       and books.publication_date is not null
       order by books.publication_date DESC) 
-      SELECT DISTINCT Temp.isbn, Temp.title, Temp.img_url FROM Temp WHERE ROWNUM<=19`;
+      SELECT DISTINCT(Temp.isbn) as isbn, Temp.title, Temp.img_url, Temp.description, Temp.url, Temp.publisher, Temp.publication_place, Temp.publication_date, Temp.rating, Temp.num_pages, Temp.lang
+      FROM Temp
+      WHERE ROWNUM<=19`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);

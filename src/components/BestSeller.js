@@ -498,11 +498,11 @@ export default function BestSeller() {
         console.log(err);
       }).then(newBookList => {
         if (!newBookList) return;
-
         console.log(newBookList);
+        ratings = [];
 
-        let newBookDivs = newBookList.rows.map(newBookItem => (
-          <GridListTile key={newBookItem[0]} style={{ height: '240px', width: '160px' }}>
+        let newBookDivs = newBookList.rows.map((newBookItem, i) => (
+          <GridListTile item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(newBookItem, i)}>
             <img src={newBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : newBookItem[2]} alt={newBookItem[1]} style={{ height: '240px', width: '160px' }} />
             <GridListTileBar
               title={newBookItem[1]}
@@ -609,18 +609,6 @@ export default function BestSeller() {
                   <div>
                     {/* <img src= {'https://i.imgur.com/sJ3CT4V.gif'} style= {{width: "180%", objectFit: "contain",  boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)"}} /> */}
                     <a href={selectedBook[2] ? selectedBook[2] : 'https://i.imgur.com/sJ3CT4V.gif'} target={'_blank'}><img alt={'Book'} src={selectedBook[2] ? selectedBook[2] : 'https://i.imgur.com/sJ3CT4V.gif'} style={{ width: "100%", objectFit: "contain", boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)" }} /></a>
-
-                    <Box component="fieldset" mb={3} borderColor="transparent">
-                      <Typography component="legend">Rate Book</Typography>
-                      <Rating
-                        name="book-rating"
-                        value={selectedrating ? selectedrating : 0}
-                        onChange={(event, newValue) => {
-                          // sel[index] = newValue;
-                          setRating(newValue);
-                        }}
-                      />
-                    </Box>
                   </div>
                 </Grid>
 
