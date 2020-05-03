@@ -24,6 +24,18 @@ import Tab from '@material-ui/core/Tab';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import GridListTileBar from '@material-ui/core/GridListTileBar';
+import { useSelector } from 'react-redux';
+import IconButton from '@material-ui/core/IconButton';
+import Dialog from '@material-ui/core/Dialog';
+import AppBar from '@material-ui/core/AppBar';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableRow from '@material-ui/core/TableRow';
+import Toolbar from '@material-ui/core/Toolbar';
+import CloseIcon from '@material-ui/icons/Close';
+import Table from '@material-ui/core/Table';
+import Slide from '@material-ui/core/Slide';
 
 // import Chart from './Chart';
 // import Deposits from './Deposits';
@@ -157,6 +169,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+var ratings = [];
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
 export default function Categories() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
@@ -168,12 +186,58 @@ export default function Categories() {
   const [displayPubTitle, setDisplayPubTitle] = React.useState([]);
   const [displayRateTitle, setDisplayRateTitle] = React.useState([]);
   const [displayNYTitle, setDisplayNYTitle] = React.useState([]);
+  const [newBooks, setNewBooks] = React.useState([]);
+  const [titleForNewBooks, setTitleForNewBooks] = React.useState([]);
+  const [titleForList, setTitleForList] = React.useState([]);
+  const auth = useSelector(state => state.auth);
+  const [selectedBook, setSelBook] = useState("");
+  const [index, setIndex] = useState(-1);
+  const [selectedrating, setRating] = useState(0);
+  const [openDailogue, setOpenDailogue] = React.useState(false);
+  const [authors, setAuthors] = useState([]);
+
+
+  const getAuthors = (isbn) => {
+
+    fetch('http://localhost:8081/api/book/getAuthors/' + isbn, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(resp => resp.json())
+      .then(authorList => {
+        console.log('getAuthors: ', authorList);
+        if (!authorList) return;
+
+        if (!authorList.rows) {
+          setAuthors([]);
+        } else {
+          setAuthors(authorList.rows);
+        }
+      })
+  }
+
   const handleDrawerOpen = () => {
     setOpen(true);
   };
   const handleDrawerClose = () => {
     setOpen(false);
   };
+
+  const handleCloseDailog = () => {
+    setOpenDailogue(false);
+  }
+
+  const handleListItemClick = (authBookItem, index) => {
+    getAuthors(authBookItem[0]);
+    setSelBook(authBookItem);
+    setIndex(index);
+    setRating(ratings[index]);
+    setOpenDailogue(true);
+  };
+
   useEffect(() => {
 
     // Send an HTTP request to the server.
@@ -197,7 +261,7 @@ export default function Categories() {
           <Button variant="contained" size="medium" className={classes.margin} disableElevation onClick={() => callAllSections(categoryName)}>
             {categoryName}
           </Button>
-    
+
         ));
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
@@ -217,7 +281,7 @@ export default function Categories() {
     }
 
     function showNYAuthors(categoryName) {
-   
+
       fetch("http://localhost:8081/api/book/categories/nyauthor/" + categoryName,
         {
           method: 'GET' // The type of HTTP request.
@@ -229,12 +293,12 @@ export default function Categories() {
           console.log(err);
         }).then(nybookList => {
           if (!nybookList) return;
-          var nybookDivs=[];
+          var nybookDivs = [];
           console.log("nylist" + nybookList.rows.length);
-          nybookDivs = nybookList.rows.map(nybookItem => (
-            
-            <GridListTile key={nybookItem[0]} style={{ height: '240px' ,width:'160px' }}>
-              <img src={nybookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : nybookItem[3]} alt={nybookItem[1]}  style={{ height: '240px' ,width:'160px' }}/>
+          nybookDivs = nybookList.rows.map((nybookItem, i) => (
+
+            <GridListTile key={nybookItem[0]} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(nybookItem, i)}>
+              <img src={nybookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : nybookItem[3]} alt={nybookItem[1]} style={{ height: '240px', width: '160px' }} />
               <GridListTileBar
                 title={nybookItem[1]}
                 classes={{
@@ -243,8 +307,8 @@ export default function Categories() {
                 }}
               />
             </GridListTile>
-          )
-          );
+          ));
+
           setNYCategories(
             []
           );
@@ -255,7 +319,7 @@ export default function Categories() {
           setDisplayNYTitle(
             'BestSelling NYTimes Books for ' + categoryName
           );
-         
+
         }, err => {
           // Print the error if there is one.
           console.log(err);
@@ -281,10 +345,10 @@ export default function Categories() {
 
           // A button which triggers the showMovies function for each genre.
           console.log("lis:" + publisherBookList.rows.length);
-          let publisherBookDivs = publisherBookList.rows.map(publisherBookItem => (
+          let publisherBookDivs = publisherBookList.rows.map((publisherBookItem, i) => (
             // <Button variant="contained" >{publisherBookItem[1]}</Button>
-            <GridListTile key={publisherBookItem[0]} style={{ height: '240px' ,width:'160px' }}>
-              <img src={publisherBookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : publisherBookItem[3]} alt={publisherBookItem[1]} style={{ height: '240px' ,width:'160px' }} />
+            <GridListTile item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(publisherBookItem, i)}>
+              <img src={publisherBookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : publisherBookItem[3]} alt={publisherBookItem[1]} style={{ height: '240px', width: '160px' }} />
               <GridListTileBar
                 title={publisherBookItem[1]}
                 classes={{
@@ -325,10 +389,10 @@ export default function Categories() {
           // Map each genreObj in genreList to an HTML element:
           // A button which triggers the showMovies function for each genre.
           console.log(ratedBookList.rows.length);
-          let ratedBookDivs = ratedBookList.rows.map(ratedBookItem => (
-        
-            <GridListTile key={ratedBookItem[0]} style={{ height: '240px' ,width:'160px' }}>
-              <img src={ratedBookItem[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : ratedBookItem[4]} alt={ratedBookItem[2]} style={{ height: '240px' ,width:'160px' }} />
+          let ratedBookDivs = ratedBookList.rows.map((ratedBookItem, i) => (
+
+            <GridListTile item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(ratedBookItem, i)}>
+              <img src={ratedBookItem[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : ratedBookItem[4]} alt={ratedBookItem[2]} style={{ height: '240px', width: '160px' }} />
               <GridListTileBar
                 title={ratedBookItem[2]}
                 classes={{
@@ -340,7 +404,7 @@ export default function Categories() {
           ));
           setRatedCategories(
             []
-          ); 
+          );
           //   // Set the state of the genres list to the value returned by the HTTP response from the server.
           setRatedCategories(
             ratedBookDivs
@@ -354,7 +418,7 @@ export default function Categories() {
           console.log(err);
         });
     }
-  },  []);
+  }, []);
 
 
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
@@ -368,12 +432,8 @@ export default function Categories() {
         <Container maxWidth="lg" className={classes.container}>
           <Grid container spacing={4}>
             <Grid item xs={12} container alignItems="center" justify="center" direction="row">
-              {/* <Paper> */}
-              {/* <GridList cellHeight={55} className={classes.gridList} cols={12}> */}
               {categories}
             </Grid>
-
-           
             <Grid item xs={12} >
               <Typography variant="subtitle1" gutterBottom>
                 {displayNYTitle}
@@ -382,8 +442,6 @@ export default function Categories() {
                 {nycategory}
               </GridList>
             </Grid>
-       
-
             <Grid item xs={12} >
               <Typography variant="subtitle1" gutterBottom>
                 {displayPubTitle}
@@ -400,8 +458,195 @@ export default function Categories() {
                 {ratedcategory}
               </GridList>
             </Grid>
-
           </Grid>
+          <Dialog fullScreen open={openDailogue} onClose={handleCloseDailog} TransitionComponent={Transition}>
+            <AppBar className={classes.appBar}>
+              <Toolbar>
+                <IconButton edge="start" color="inherit" onClick={handleCloseDailog} aria-label="close">
+                  <CloseIcon />
+                </IconButton>
+                <Typography variant="h6" className={classes.title}>
+                  Book Details
+              </Typography>
+              </Toolbar>
+            </AppBar>
+            <Container maxWidth="lg">
+              <Grid container xs={12} spacing={2} className={classes.container} >
+                <Grid item xs={4} style={{ display: 'flex', justifyContent: 'center', marginTop: '10%' }}>
+                  <div>
+                    {/* <img src= {'https://i.imgur.com/sJ3CT4V.gif'} style= {{width: "180%", objectFit: "contain",  boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)"}} /> */}
+                    <a href={selectedBook[2] ? selectedBook[2] : 'https://i.imgur.com/sJ3CT4V.gif'} target={'_blank'}><img alt={'Book'} src={selectedBook[2] ? selectedBook[2] : 'https://i.imgur.com/sJ3CT4V.gif'} style={{ width: "100%", objectFit: "contain", boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)" }} /></a>
+                  </div>
+                </Grid>
+
+                <Grid item xs={8} style={{ display: 'flex', marginTop: '5%' }}>
+                  <TableContainer component={Paper}>
+                    <Table className={classes.table} aria-label="simple table">
+                      <TableBody>
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              ISBN:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" style={{ width: '15rem' }}>
+                            <Typography variant="h6">
+                              {selectedBook[0]}
+                            </Typography>
+                          </TableCell>
+
+                          <TableCell align="left">
+                            <Typography variant="h5" component="h1">
+                              Rating:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h6">
+                              {selectedBook[8]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              Title:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h7">
+                              {selectedBook[1]}
+                            </Typography>
+                          </TableCell>
+
+                          <TableCell align="left">
+                            <Typography variant="h5" component="h1">
+                              Pages:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h6">
+                              {selectedBook[9]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              Description
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h7">
+                              {selectedBook[3]}
+                            </Typography>
+                          </TableCell>
+
+                          <TableCell align="left">
+                            <Typography variant="h5" component="h1">
+                              Language:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h6">
+                              {selectedBook[10]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              URL
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h9">
+                              <a href={selectedBook[4] ? selectedBook[4] : ''} target={'_blank'}>{selectedBook[4]}</a>
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h6">
+                              {selectedBook[11]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              Authors:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+
+                            <Table aria-label="simple table">
+                              {authors.map((author, i) => {
+                                return (
+                                  <TableRow>
+                                    <TableCell align="left" >
+                                      <Typography variant="h7">
+                                        {author.WIKIURL ? <a href={author.WIKIURL} target={'_blank'}> {author.AUTHORNAME} </a> : author.AUTHORNAME}
+                                      </Typography>
+                                    </TableCell>
+                                  </TableRow>
+                                )
+                              })}
+                            </Table>
+
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              Publisher:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            {/* Selected Publisher */}
+                            <Typography variant="h7">
+                              {selectedBook[5]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '12rem' }}>
+                            <Typography variant="h5" component="h1">
+                              Publication Place:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            {/* Selected Place */}
+                            <Typography variant="h7">
+                              {selectedBook[6]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              Publication Date:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            {/* Selected ISBN */}
+                            <Typography variant="h6">
+                              {selectedBook[7]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Grid>
+              </Grid>
+            </Container>
+          </Dialog>
           <Box pt={4}>
             <Copyright />
           </Box>
