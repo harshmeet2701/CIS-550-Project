@@ -39,6 +39,13 @@ const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
   },
+  gridList: {
+    // flexWrap: 'nowrap',
+    width: 'nowrap',
+    height: 500,
+    // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
+    transform: 'translateZ(0)',
+  },
   toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
   },
@@ -114,6 +121,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+
 export default function Dashboard() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
@@ -135,7 +143,7 @@ export default function Dashboard() {
 
   // Add code to display the to read and liked book
   function getReadBooks() {
-    fetch("http://localhost:8081/api/book/dashboard/read",
+    fetch("http://localhost:8081/api/book/search/title/" + "dan",
       {
         method: 'GET' // The type of HTTP request.
       }).then(res => {
@@ -175,7 +183,7 @@ export default function Dashboard() {
 
   function getLikedBooks() {
     // fetch("http://localhost:8081/api/book/dashboard/liked",
-    fetch("http://localhost:8081/api/book/'/search/title/" + "harry",
+    fetch("http://localhost:8081/api/book/search/title/" + "harry",
       {
         method: 'GET' // The type of HTTP request.
       }).then(res => {
@@ -219,25 +227,21 @@ export default function Dashboard() {
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
-          <Grid container spacing={4}>
-            <Grid item xs={12} spacing={1}>
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Have Read List
+          <Grid item xs={12}>
+            <Typography variant="h5" gutterBottom>
+              Have Read List
                 </Typography>
-                <GridList cellHeight={300} spacing={1} className={classes.gridList} >
-                  {books}
-                </GridList>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Liked List
+            <GridList cellHeight={300} spacing={1} className={classes.gridList} >
+              {books}
+            </GridList>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="h5" gutterBottom>
+              Liked List
                 </Typography>
-                <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
-                  {likedbooks}
-                </GridList>
-              </Grid>
-            </Grid>
+            <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
+              {likedbooks}
+            </GridList>
           </Grid>
         </Container>
       </main>
