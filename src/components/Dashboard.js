@@ -9,6 +9,13 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Link from '@material-ui/core/Link';
 import SideBar from './SideBar';
+import GridList from '@material-ui/core/GridList';
+import GridListTile from '@material-ui/core/GridListTile';
+import GridListTileBar from '@material-ui/core/GridListTileBar';
+import IconButton from '@material-ui/core/IconButton';
+import StarBorderIcon from '@material-ui/icons/StarBorder';
+import { useState, useEffect } from 'react';
+
 // import Chart from './Chart';
 // import Deposits from './Deposits';
 // import Orders from './Orders';
@@ -31,6 +38,13 @@ const drawerWidth = 240;
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
+  },
+  gridList: {
+    // flexWrap: 'nowrap',
+    width: 'nowrap',
+    height: 500,
+    // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
+    transform: 'translateZ(0)',
   },
   toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
@@ -107,9 +121,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+
 export default function Dashboard() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
+  const [books, setBooks] = React.useState([]);
+  const [likedbooks, setLikedBooks] = React.useState([]);
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -118,36 +135,114 @@ export default function Dashboard() {
   };
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
+  useEffect(() => {
+    console.log('In Dashboard');
+    getReadBooks();
+    getLikedBooks();
+  })
+
+  // Add code to display the to read and liked book
+  function getReadBooks() {
+    fetch("http://localhost:8081/api/book/search/title/" + "dan",
+      {
+        method: 'GET' // The type of HTTP request.
+      }).then(res => {
+        // Convert the response data to a JSON.
+        return res.json();
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      }).then(readBookList => {
+        if (!readBookList) return;
+        console.log(readBookList);
+
+        let readBookDivs = readBookList.rows.map(readBookItem => (
+          <GridListTile key={readBookItem[0]} style={{ height: '240px', width: '160px' }}>
+            <img src={readBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : readBookItem[2]} alt={readBookItem[1]} style={{ height: '240px', width: '160px' }} />
+            <GridListTileBar
+              title={readBookItem[1]}
+              classes={{
+                root: classes.titleBar,
+                title: classes.title,
+              }}
+            />
+          </GridListTile>
+
+        ));
+
+        // Set the state of the genres list to the value returned by the HTTP response from the server.
+        setBooks(
+          readBookDivs
+        );
+
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      });
+  }
+
+  function getLikedBooks() {
+    // fetch("http://localhost:8081/api/book/dashboard/liked",
+    fetch("http://localhost:8081/api/book/search/title/" + "harry",
+      {
+        method: 'GET' // The type of HTTP request.
+      }).then(res => {
+        // Convert the response data to a JSON.
+        return res.json();
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      }).then(pubBookList => {
+        if (!pubBookList) return;
+        console.log(pubBookList);
+
+        let likedBookDivs = pubBookList.rows.map(likedBookItem => (
+          <GridListTile key={likedBookItem[0]} style={{ height: '240px', width: '160px' }}>
+            <img src={likedBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : likedBookItem[2]} alt={likedBookItem[1]} style={{ height: '240px', width: '160px' }} />
+            <GridListTileBar
+              title={likedBookItem[1]}
+              classes={{
+                root: classes.titleBar,
+                title: classes.title,
+              }}
+            />
+          </GridListTile>
+
+        ));
+
+        // Set the state of the genres list to the value returned by the HTTP response from the server.
+        setLikedBooks(
+          likedBookDivs
+        );
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      });
+  }
+
   return (
     <div className={classes.root}>
       <CssBaseline />
-      <SideBar name='Dashboard'/>
+      <SideBar name='Dashboard' />
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
-          <Grid container spacing={3}>
-            {/* Chart */}
-            <Grid item xs={12} md={8} lg={9}>
-              <Paper className={fixedHeightPaper}>
-                {/* <Chart /> */}
-              </Paper>
-            </Grid>
-            {/* Recent Deposits */}
-            <Grid item xs={12} md={4} lg={3}>
-              <Paper className={fixedHeightPaper}>
-                {/* <Deposits /> */}
-              </Paper>
-            </Grid>
-            {/* Recent Orders */}
-            <Grid item xs={12}>
-              <Paper className={classes.paper}>
-                {/* <Orders /> */}
-              </Paper>
-            </Grid>
+          <Grid item xs={12}>
+            <Typography variant="h5" gutterBottom>
+              Have Read List
+                </Typography>
+            <GridList cellHeight={300} spacing={1} className={classes.gridList} >
+              {books}
+            </GridList>
           </Grid>
-          <Box pt={4}>
-            <Copyright />
-          </Box>
+          <Grid item xs={12}>
+            <Typography variant="h5" gutterBottom>
+              Liked List
+                </Typography>
+            <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
+              {likedbooks}
+            </GridList>
+          </Grid>
         </Container>
       </main>
     </div>
