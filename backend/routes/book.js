@@ -7,9 +7,9 @@ router.get('/', (req, res) => getBooks(req, res));
 router.get('/search/title/:title', (req, res) => getBookForTitle(req, res));
 router.get('/search/isbn/:isbn', (req, res) => getBookForIsbn(req, res));
 router.get('/search/author/:author', (req, res) => getBookForAuthor(req, res));
-router.get('/recommended/topRated', (req, res) => getTopRatedBooks(req, res));
-router.get('/recommended/ages', (req, res) => getAges(req, res));
-router.get('/recommended/ages/:age', (req, res) => getForAge(req, res));
+router.get('/recommended/nyauthor', (req, res) => getTopNYAuthorRec(req, res));
+router.get('/recommended/booksRead', (req, res) => getBooksReadRec(req, res));
+router.get('/recommended/booksLiked', (req, res) => getBooksLikedRec(req, res));
 router.get('/bestseller/publisher', (req, res) => getTopPublisher(req, res));
 router.get('/bestseller/publisher/:pubName', (req, res) => getTopNYPublishingBooks(req, res));
 router.get('/bestseller/nyauthor/:authorName', (req, res) => getTopNYAuthorBooks(req, res));
@@ -137,11 +137,68 @@ function getAuthors(req, res) {
  *  by users. Retrieves all books that fall between the maximum rating and maximum rating -1 
  * for the entire books dataset/database
  */
-function getTopRatedBooks(req, res) {
+function getBooksReadRec(req, res) {
 
   connection.then((con) => {
     // console.log(con);
-    const sql = 'FILL';
+    const sql = `
+    WITH BookTemp AS
+    (SELECT isbn, rating FROM Books),
+    BookAuthorUC AS
+    (
+    SELECT BookAuthor.authorid, bmain.isbn
+    FROM MemberChoices uc
+    INNER JOIN BookTemp bmain
+    ON bmain.isbn = uc.isbn
+    INNER JOIN BookAuthor
+    ON bmain.isbn = BookAuthor.isbn
+    ORDER BY bmain.rating desc
+    ),
+    UCTemp AS (
+    SELECT uc.isbn
+    FROM MemberChoices uc
+    WHERE uc.email = 'harsh93@seas.upenn.edu'
+    AND uc.readflag = 1),
+    BooksSuggested AS 
+    (
+    SELECT bma.isbn, bma.rating, BookAuthor.authorid
+    FROM BookTemp bma
+    INNER JOIN BookAuthor
+    ON bma.isbn= BookAuthor.isbn
+    INNER JOIN BookCategory bCat
+    ON bCat.isbn = bma.isbn
+    WHERE bma.isbn NOT IN 
+    (
+        SELECT * FROM UCTemp
+    )
+    AND bCat.categoryId IN
+    (
+        SELECT BookCategory.categoryId
+        FROM  BookTemp
+        INNER JOIN BookCategory
+        ON BookTemp.isbn = BookCategory.isbn
+        INNER JOIN UCTemp ON BookTemp.isbn = UCTemp.isbn
+    )
+    ), 
+    Temp1 AS(
+    SELECT bs.isbn, bauc.authorid, bs.rating
+    FROM BooksSuggested bs
+    INNER JOIN BookAuthorUC bauc
+    ON bauc.isbn = bs.isbn
+    ORDER BY bauc.authorid DESC),
+    Temp2 AS 
+    (SELECT bs.isbn, bs.authorid, bs.rating
+    FROM BooksSuggested bs
+    WHERE bs.authorid NOT IN 
+    (
+        SELECT bauc.authorid
+        FROM BookAuthorUC bauc
+    )
+    )
+    SELECT isbn FROM Temp1
+    UNION 
+    SELECT isbn FROM Temp2
+    `;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -155,11 +212,62 @@ function getTopRatedBooks(req, res) {
  * Given age group, retrieve all books that are suitable for the chosen age group sorted by rating in descending 
  * order and in alphabetical ordering by title.
  */
-function getAges(req, res) {
+function getTopNYAuthorRec(req, res) {
 
   connection.then((con) => {
     // console.log(con);
-    const sql = 'FILL';
+    const sql = `WITH NYAuthorTemp AS 
+    (
+    select * from 
+    (
+    SELECT DISTINCT(bookauthor.authorid) as authorId, COUNT(*) AS count 
+    FROM (SELECT isbn FROM nytimesseller) NYT
+    INNER JOIN bookauthor
+    ON NYT.isbn = bookauthor.isbn
+    GROUP BY bookauthor.authorid
+    ORDER BY count DESC
+    )
+    where rownum <= 15
+    ),
+    CategoryUC AS
+    (
+    select * from
+    (
+    SELECT DISTINCT(b.categoryId) AS categories
+    FROM  BookCategory b
+    INNER JOIN MemberChoices ON MemberChoices.isbn = b.isbn
+    WHERE MemberChoices.email = 'harsh93@seas.upenn.edu'
+    )
+    ),
+    
+    CombinedTemp AS
+    (
+    SELECT DISTINCT Books.isbn  as isbn, books.title, BookAuthor.authorid, BookCategory.categoryid as categoryid, Books.rating
+    FROM Books
+    INNER JOIN BookAuthor 
+    ON BookAuthor.isbn = Books.isbn 
+    INNER JOIN BookCategory 
+    ON Books.isbn = BookCategory.isbn
+    ),
+    
+    BestSellingWithCategories AS
+    (
+    SELECT bmain.authorid, COUNT(bmain.categoryid) AS count2
+    FROM CombinedTemp bmain
+    JOIN NYAuthorTemp ON NYAuthorTemp.authorId = bmain.authorId
+    JOIN CategoryUC ON CategoryUC.categories = bmain.categoryid
+    GROUP BY bmain.authorid 
+    HAVING COUNT(bmain.categoryid) >= 3
+    )
+    SELECT * FROM (
+    SELECT bs.isbn, bs.title
+    FROM CombinedTemp bs
+    WHERE bs.authorId IN (SELECT authorid FROM BestsellingWithCategories)
+    AND  bs.isbn NOT IN 
+      (SELECT uc.isbn
+      FROM MemberChoices uc
+      WHERE uc.email = 'harsh93@seas.upenn.edu')
+    ORDER BY bs.rating DESC)`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -168,10 +276,67 @@ function getAges(req, res) {
 }
 
 
-function getForAge(req, res) {
+function getBooksLikedRec(req, res) {
 
   connection.then((con) => {
-    const sql = 'FILL';
+    const sql = `
+    WITH BookTemp AS
+    (SELECT isbn, rating FROM Books),
+    BookAuthorUC AS
+    (
+    SELECT BookAuthor.authorid, bmain.isbn
+    FROM MemberChoices uc
+    INNER JOIN BookTemp bmain
+    ON bmain.isbn = uc.isbn
+    INNER JOIN BookAuthor
+    ON bmain.isbn = BookAuthor.isbn
+    ORDER BY bmain.rating desc
+    ),
+    UCTemp AS (
+    SELECT uc.isbn
+    FROM MemberChoices uc
+    WHERE uc.email = 'harsh93@seas.upenn.edu'
+    AND uc.likeflag = 1),
+    BooksSuggested AS 
+    (
+    SELECT bma.isbn, bma.rating, BookAuthor.authorid
+    FROM BookTemp bma
+    INNER JOIN BookAuthor
+    ON bma.isbn= BookAuthor.isbn
+    INNER JOIN BookCategory bCat
+    ON bCat.isbn = bma.isbn
+    WHERE bma.isbn NOT IN 
+    (
+        SELECT * FROM UCTemp
+    )
+    AND bCat.categoryId IN
+    (
+        SELECT BookCategory.categoryId
+        FROM  BookTemp
+        INNER JOIN BookCategory
+        ON BookTemp.isbn = BookCategory.isbn
+        INNER JOIN UCTemp ON BookTemp.isbn = UCTemp.isbn
+    )
+    ), 
+    Temp1 AS(
+    SELECT bs.isbn, bauc.authorid, bs.rating
+    FROM BooksSuggested bs
+    INNER JOIN BookAuthorUC bauc
+    ON bauc.isbn = bs.isbn
+    ORDER BY bauc.authorid DESC),
+    Temp2 AS 
+    (SELECT bs.isbn, bs.authorid, bs.rating
+    FROM BooksSuggested bs
+    WHERE bs.authorid NOT IN 
+    (
+        SELECT bauc.authorid
+        FROM BookAuthorUC bauc
+    )
+    )
+    SELECT isbn FROM Temp1
+    UNION 
+    SELECT isbn FROM Temp2
+    `;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -246,11 +411,12 @@ function getTopNYPublishingBooks(req, res) {
     const sql = `WITH Temp AS
     (SELECT Books.*
     FROM Books
-    INNER JOIN NYTimesSeller
-    ON Books.isbn = NYTimesSeller.isbn
+    INNER JOIN (SELECT isbn, weeks_on_list FROM NYTimesSeller) NYT
+    ON Books.isbn = NYT.isbn
     WHERE Books.publisher = '${pubName}'
-    ORDER BY NYTimesSeller.weeks_on_list DESC)
-    SELECT DISTINCT(Temp.isbn) as isbn, Temp.title, Temp.img_url, Temp.description, Temp.url, Temp.publisher, Temp.publication_place, Temp.publication_date, Temp.rating, Temp.num_pages, Temp.lang
+    ORDER BY NYT.weeks_on_list DESC)
+    SELECT DISTINCT(Temp.isbn) as isbn, Temp.title, Temp.img_url, Temp.description, Temp.url, Temp.publisher,
+     Temp.publication_place, Temp.publication_date, Temp.rating, Temp.num_pages, Temp.lang
     FROM Temp WHERE rownum <=20
     `;
     con.execute(sql).then((response) => {
@@ -271,7 +437,8 @@ function getTopNYAuthorBooks(req, res) {
   authorName = authorName.replace("\'", "\'\'");
   console.log("authorName" + authorName);
   connection.then((con) => {
-    const sql = `select DISTINCT(Books.isbn), Books.title, Books.img_url, Books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages
+    const sql = `select DISTINCT(Books.isbn), Books.title, Books.img_url, 
+    Books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages
     from Books
     inner join bookauthor
     on books.isbn = bookauthor.isbn
@@ -343,25 +510,24 @@ function getMoviesThatBestSeller(req, res) {
     })
   });
 }
-
-
 /**
  * Display based on category name- how to create sub section on a page
  */
 function getTopCategories(req, res) {
-
+ 
   connection.then((con) => {
-    const sql = ` WITH temp AS(SELECT Books.isbn, BookCategory.categoryId FROM
-    Books JOIN BookCategory ON Books.isbn = BookCategory.isbn),
-      CategoryTemp AS
-        (SELECT temp.categoryId, COUNT(DISTINCT(temp.isbn)) AS count FROM temp 
+    const sql = ` \WITH temp AS
+    (SELECT B.isbn, BookCategory.categoryId FROM
+    (SELECT isbn FROM Books) B JOIN BookCategory ON B.isbn =BookCategory.isbn),
+    CategoryTemp AS 
+    (SELECT temp.categoryId, COUNT(DISTINCT(temp.isbn)) AS count FROM temp 
     GROUP BY temp.categoryId 
     ORDER BY count DESC),
-        SelectCategories AS
-          (SELECT DISTINCT(CategoryTemp.categoryId) FROM CategoryTemp
+    SelectCategories AS 
+    (SELECT DISTINCT(CategoryTemp.categoryId) FROM CategoryTemp
     WHERE ROWNUM < 20)
-    SELECT DISTINCT(Category.categoryName) AS categoryName FROM Category
-    WHERE Category.categoryId IN(SELECT * FROM SelectCategories)
+    SELECT DISTINCT(Category.categoryName) FROM Category
+    JOIN SelectCategories ON Category.categoryId = SelectCategories.categoryId
       `;
     con.execute(sql).then((response) => {
       console.log(response);
@@ -369,9 +535,9 @@ function getTopCategories(req, res) {
     })
   });
 }
-
-
-
+ 
+ 
+ 
 /**
  *15) Displays all books written by NYTimes best selling authors 
  for a certain category chosen- catgeoryName
@@ -381,52 +547,41 @@ function getTopCategories(req, res) {
 function getTopCategoryAuthorNY(req, res) {
   var inputcategory = req.params.categoryName;
   // console.log(inputcategory);
-  inputcategory = inputcategory.replace("\'", "\'\'");
+  inputcategory= inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = ` WITH NYAuthorTemp AS
-      (
-        select * from
-          (
-            SELECT DISTINCT(author.authorid), COUNT(*) AS count 
-    FROM books
-    INNER JOIN nytimesseller
-    ON books.isbn = nytimesseller.isbn
-    INNER JOIN bookauthor
-    ON books.isbn = bookauthor.isbn
-    INNER JOIN author
-    ON bookauthor.authorid = author.authorid
-    GROUP BY author.authorid 
-    ORDER BY count DESC
-          )
-      ),
-
-      CombinedTemp AS
-        (
-          select * from
-            (
-              SELECT Books.*, Author.AuthorName, BookCategory.categoryid, author.authorid 
-    FROM Books
-    JOIN BookAuthor 
-    ON BookAuthor.isbn = Books.isbn 
-    JOIN Author
-    ON BookAuthor.authorid = Author.authorid
-    JOIN BookCategory 
-    ON Books.isbn = BookCategory.isbn
-            )
+    (
+        SELECT * FROM (
+        SELECT DISTINCT(bookauthor.authorid), COUNT(*) AS count 
+        FROM (SELECT isbn FROM nytimesseller) NYT
+        INNER JOIN bookauthor
+        ON NYT.isbn = bookauthor.isbn
+        GROUP BY bookauthor.authorid 
+        ORDER BY count DESC          
         )
-
-    SELECT * FROM
-      (
-        SELECT DISTINCT(combinedtemp.isbn), combinedtemp.title as title, combinedtemp.AuthorName, combinedtemp.img_url
-    FROM CombinedTemp
-    inner join nyauthortemp
-    on combinedtemp.authorid = nyauthortemp.authorid
-    AND combinedtemp.categoryId =
-      (SELECT categoryId FROM category
-    WHERE categoryName = '${inputcategory}')
-    WHERE combinedtemp.img_url IS NOT NULL
-    )
-  WHERE ROWNUM < 20`
+    ),
+    CombinedTemp AS
+           
+    (SELECT Books.*, BookCategory.categoryid, BookAuthor.authorid 
+        FROM Books
+        JOIN BookAuthor 
+        ON BookAuthor.isbn = Books.isbn 
+        JOIN BookCategory 
+        ON Books.isbn = BookCategory.isbn
+     )
+        SELECT * FROM
+     (
+        SELECT DISTINCT(combinedtemp.isbn), combinedtemp.title as title, combinedtemp.img_url,  CombinedTemp.description, CombinedTemp.url, 
+        CombinedTemp.publisher, CombinedTemp.publication_place, CombinedTemp.publication_date, CombinedTemp.rating, CombinedTemp.num_pages, CombinedTemp.lang
+        FROM nyauthortemp
+        inner join combinedtemp
+        on combinedtemp.authorid = nyauthortemp.authorid
+        AND combinedtemp.categoryId =
+        (SELECT categoryId FROM category
+        WHERE categoryName = '${inputcategory}')
+        WHERE combinedtemp.img_url IS NOT NULL
+        )
+      WHERE ROWNUM < 20`
       ;
     con.execute(sql).then((response) => {
       console.log(response);
@@ -434,9 +589,9 @@ function getTopCategoryAuthorNY(req, res) {
     })
   });
 }
-
-
-
+ 
+ 
+ 
 /**
  * 17) Displays books in a category such that they-categoryName
  *  are highly rated by users
@@ -444,23 +599,22 @@ function getTopCategoryAuthorNY(req, res) {
  */
 function getTopCategoryRated(req, res) {
   var inputcategory = req.params.categoryName;
-  // console.log(inputcategory);
-  inputcategory = inputcategory.replace("\'", "\'\'");
+  console.log("in ratedL"+inputcategory);
+  inputcategory= inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
-    const sql = `WITH bookC AS
-    (SELECT Books.*, Author.authorname AS author, category.categoryname, category.categoryid
-    FROM Books JOIN BookCategory ON Books.isbn = BookCategory.isbn JOIN Category
-     ON category.categoryid = bookcategory.categoryid Join BookAuthor 
-     ON bookauthor.isbn = books.isbn JOIN AUTHOR ON BOOKAUTHOR.AUTHORID = author.authorid)
-  SELECT * FROM(
-    SELECT DISTINCT bookC.isbn, bookC.author, bookC.title, bookC.rating as rating, bookC.img_url
-    FROM bookC
+    const sql = ` WITH bookC AS
+    (SELECT Books.*, BookCategory.categoryid
+    FROM Books JOIN BookCategory ON Books.isbn = BookCategory.isbn)
+  SELECT * FROM (
+    SELECT DISTINCT bookC.isbn, bookC.title, bookC.img_url, bookC.description, bookC.url,
+bookC.publisher, bookC.publication_place, bookC.publication_date, bookC.rating, bookC.num_pages, bookC.lang, bookC.ages
+    FROM bookC 
     WHERE bookC.categoryid IN
     (SELECT categoryId FROM Category
     WHERE categoryName = '${inputcategory}')
-    AND rating IS NOT NULL
+    AND bookC.rating IS NOT NULL
     AND bookC.img_url IS NOT NULL
-    ORDER BY rating DESC
+    ORDER BY bookC.rating DESC
   )
   WHERE ROWNUM < 20`;
     con.execute(sql).then((response) => {
@@ -469,8 +623,8 @@ function getTopCategoryRated(req, res) {
     })
   });
 }
-
-
+ 
+ 
 /**
  * 18)Displays books in a certain category-categoryName published 
  * by the best selling NYTimes publishing house
@@ -480,54 +634,43 @@ function getTopCategoryRated(req, res) {
 function getTopCategoryPublisher(req, res) {
   var inputcategory = req.params.categoryName;
   console.log("in publisher" + inputcategory);
-  inputcategory = inputcategory.replace("\'", "\'\'");
+  inputcategory= inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
-    const sql = `WITH PublishersTemp AS
-    (
-      SELECT DISTINCT(books.publisher), COUNT(*) AS count
-    FROM NYTimesSeller JOIN Books ON NYTimesSeller.isbn = Books.isbn
-    WHERE ROWNUM <= 10
-    GROUP BY books.publisher
-    ORDER BY count DESC
-    ),
-    BookUserTemp AS
-      (
-        SELECT Books.isbn
-    FROM memberchoices
-    INNER JOIN Books
-    ON Books.isbn = memberchoices.isbn
-    ORDER BY Books.rating
-      ),
-      AuthorTemp AS
-        (
-          SELECT author.authorid, Author.authorname
-    FROM Author
-    JOIN bookauthor
-    ON author.authorid = bookauthor.authorid
+    const sql = `WITH BookPub AS 
+    (SELECT Books.isbn, Books.publisher FROM Books),
+    PublishersTemp AS(
+         SELECT * FROM (
+          SELECT DISTINCT(BookPub.publisher) as pub, COUNT(*) AS count
+        FROM (SELECT isbn FROM NYTimesSeller) NYT JOIN BookPub ON NYT.isbn = BookPub.isbn
+        GROUP BY BookPub.publisher
+        ORDER BY count DESC) 
+        WHERE ROWNUM <10
         ),
-        CombinedTemp AS
-          (
-            SELECT Books.*, AuthorTemp.AuthorName, BookCategory.categoryid, authortemp.authorid
-    FROM Books
-    JOIN BookAuthor ON BookAuthor.isbn = Books.isbn
-    LEFT JOIN AuthorTemp ON AuthorTemp.authorId = BookAuthor.authorId
-    JOIN BookCategory ON Books.isbn = BookCategory.isbn
-          )
-  SELECT * FROM(
-    SELECT DISTINCT(CombinedTemp.isbn), CombinedTemp.title, CombinedTemp.AuthorName, CombinedTemp.img_url
-    FROM CombinedTemp
-    INNER JOIN PublishersTemp ON CombinedTemp.publisher = PublishersTemp.publisher
-    WHERE CombinedTemp.categoryId IN
-    (SELECT categoryId FROM Category
-    WHERE categoryName = '${inputcategory}')
-    AND CombinedTemp.img_url IS NOT NULL)
-  WHERE ROWNUM <= 20`;
+    CombinedTemp AS
+    (
+        SELECT Books.*, BookCategory.categoryid
+        FROM Books
+        INNER JOIN BookCategory ON Books.isbn = BookCategory.isbn
+    )
+      SELECT * FROM(
+        SELECT DISTINCT(CombinedTemp.isbn), CombinedTemp.title, CombinedTemp.img_url,  CombinedTemp.description, CombinedTemp.url, 
+        CombinedTemp.publisher, CombinedTemp.publication_place, CombinedTemp.publication_date, CombinedTemp.rating, CombinedTemp.num_pages, CombinedTemp.lang
+        FROM PublishersTemp
+        INNER JOIN CombinedTemp ON CombinedTemp.publisher = PublishersTemp.pub
+        WHERE CombinedTemp.categoryId IN
+        (SELECT categoryId FROM Category
+        WHERE categoryName = '${inputcategory}')
+        AND CombinedTemp.img_url IS NOT NULL)
+      WHERE ROWNUM <= 20`;
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
     })
   });
 }
+
+
+
 
 /**
  * 20)display movies adapted from books

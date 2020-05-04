@@ -298,7 +298,7 @@ export default function Categories() {
           nybookDivs = nybookList.rows.map((nybookItem, i) => (
 
             <GridListTile key={nybookItem[0]} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(nybookItem, i)}>
-              <img src={nybookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : nybookItem[3]} alt={nybookItem[1]} style={{ height: '240px', width: '160px' }} />
+              <img src={nybookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : nybookItem[2]} alt={nybookItem[1]} style={{ height: '240px', width: '160px' }} />
               <GridListTileBar
                 title={nybookItem[1]}
                 classes={{
@@ -347,8 +347,8 @@ export default function Categories() {
           console.log("lis:" + publisherBookList.rows.length);
           let publisherBookDivs = publisherBookList.rows.map((publisherBookItem, i) => (
             // <Button variant="contained" >{publisherBookItem[1]}</Button>
-            <GridListTile item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(publisherBookItem, i)}>
-              <img src={publisherBookItem[3] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : publisherBookItem[3]} alt={publisherBookItem[1]} style={{ height: '240px', width: '160px' }} />
+            <GridListTile item key={publisherBookItem[0]} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(publisherBookItem, i)}>
+              <img src={publisherBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : publisherBookItem[2]} alt={publisherBookItem[1]} style={{ height: '240px', width: '160px' }} />
               <GridListTileBar
                 title={publisherBookItem[1]}
                 classes={{
@@ -391,10 +391,10 @@ export default function Categories() {
           console.log(ratedBookList.rows.length);
           let ratedBookDivs = ratedBookList.rows.map((ratedBookItem, i) => (
 
-            <GridListTile item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(ratedBookItem, i)}>
-              <img src={ratedBookItem[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : ratedBookItem[4]} alt={ratedBookItem[2]} style={{ height: '240px', width: '160px' }} />
+            <GridListTile item key={ratedBookItem[0]} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(ratedBookItem, i)}>
+              <img src={ratedBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : ratedBookItem[2]} alt={ratedBookItem[1]} style={{ height: '240px', width: '160px' }} />
               <GridListTileBar
-                title={ratedBookItem[2]}
+                title={ratedBookItem[1]}
                 classes={{
                   root: classes.titleBar,
                   title: classes.title,
@@ -418,7 +418,7 @@ export default function Categories() {
           console.log(err);
         });
     }
-  }, []);
+  });
 
 
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
