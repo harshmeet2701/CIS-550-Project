@@ -37,10 +37,6 @@ import CloseIcon from '@material-ui/icons/Close';
 import Table from '@material-ui/core/Table';
 import Slide from '@material-ui/core/Slide';
 
-// import Chart from './Chart';
-// import Deposits from './Deposits';
-// import Orders from './Orders';
-
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
@@ -61,6 +57,17 @@ const useStyles = makeStyles((theme) => ({
     flexWrap: 'nowrap',
     // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
     transform: 'translateZ(0)',
+    '&::-webkit-scrollbar': {
+      width: '0.4em'
+    },
+    '&::-webkit-scrollbar-track': {
+      boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+      webkitBoxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: 'rgba(0,0,0,.1)',
+      outline: '1px solid slategrey'
+    }
   },
   icon: {
     marginRight: theme.spacing(2),
@@ -167,6 +174,11 @@ const useStyles = makeStyles((theme) => ({
   fixedHeight: {
     height: 240,
   },
+  tile: {
+    "&:hover": {
+      cursor: 'pointer'
+    }
+  }
 }));
 
 var ratings = [];
@@ -258,7 +270,7 @@ export default function Categories() {
 
         let categoryDivs = categoryList.rows.map(categoryName => (
 
-          <Button variant="contained" size="medium" className={classes.margin} disableElevation onClick={() => callAllSections(categoryName)}>
+          <Button variant="outlined" size="medium" color="primary" className={classes.margin} disableElevation onClick={() => callAllSections(categoryName)}>
             {categoryName}
           </Button>
 
@@ -297,7 +309,7 @@ export default function Categories() {
           console.log("nylist" + nybookList.rows.length);
           nybookDivs = nybookList.rows.map((nybookItem, i) => (
 
-            <GridListTile key={nybookItem[0]} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(nybookItem, i)}>
+            <GridListTile key={nybookItem[0]} className={classes.tile} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(nybookItem, i)}>
               <img src={nybookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : nybookItem[2]} alt={nybookItem[1]} style={{ height: '240px', width: '160px' }} />
               <GridListTileBar
                 title={nybookItem[1]}
@@ -347,7 +359,7 @@ export default function Categories() {
           console.log("lis:" + publisherBookList.rows.length);
           let publisherBookDivs = publisherBookList.rows.map((publisherBookItem, i) => (
             // <Button variant="contained" >{publisherBookItem[1]}</Button>
-            <GridListTile item key={publisherBookItem[0]} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(publisherBookItem, i)}>
+            <GridListTile item key={publisherBookItem[0]} className={classes.tile} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(publisherBookItem, i)}>
               <img src={publisherBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : publisherBookItem[2]} alt={publisherBookItem[1]} style={{ height: '240px', width: '160px' }} />
               <GridListTileBar
                 title={publisherBookItem[1]}
@@ -391,7 +403,7 @@ export default function Categories() {
           console.log(ratedBookList.rows.length);
           let ratedBookDivs = ratedBookList.rows.map((ratedBookItem, i) => (
 
-            <GridListTile item key={ratedBookItem[0]} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(ratedBookItem, i)}>
+            <GridListTile item key={ratedBookItem[0]} className={classes.tile} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(ratedBookItem, i)}>
               <img src={ratedBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : ratedBookItem[2]} alt={ratedBookItem[1]} style={{ height: '240px', width: '160px' }} />
               <GridListTileBar
                 title={ratedBookItem[1]}
@@ -563,7 +575,9 @@ export default function Categories() {
                           </TableCell>
                           <TableCell align="left" >
                             <Typography variant="h9">
-                              <a href={selectedBook[4] ? selectedBook[4] : ''} target={'_blank'}>{selectedBook[4]}</a>
+                              {
+                             <a href={selectedBook[4] ? (selectedBook[4].includes('http')  ? selectedBook[4] : "https://www.bookdepository.com" + selectedBook[4] ) : ''} target={'_blank'}>{selectedBook[4] ? (selectedBook[4].includes('http')  ? selectedBook[4] : "https://www.bookdepository.com" + selectedBook[4] ) : ''}</a>
+                                }
                             </Typography>
                           </TableCell>
                           <TableCell align="left" >
@@ -647,9 +661,9 @@ export default function Categories() {
               </Grid>
             </Container>
           </Dialog>
-          <Box pt={4}>
+          {/* <Box pt={4}>
             <Copyright />
-          </Box>
+          </Box> */}
         </Container>
       </main>
     </div>

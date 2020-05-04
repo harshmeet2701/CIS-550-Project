@@ -553,12 +553,9 @@ function getMoviesThatBestSeller(req, res) {
 function getTopCategories(req, res) {
 
   connection.then((con) => {
-    const sql = ` \WITH temp AS
-    (SELECT B.isbn, BookCategory.categoryId FROM
-    (SELECT isbn FROM Books) B JOIN BookCategory ON B.isbn =BookCategory.isbn),
-    CategoryTemp AS 
-    (SELECT temp.categoryId, COUNT(DISTINCT(temp.isbn)) AS count FROM temp 
-    GROUP BY temp.categoryId 
+    const sql = ` WITH CategoryTemp AS 
+    (SELECT BookCategory.categoryId, COUNT(DISTINCT(BookCategory.isbn)) AS count FROM BookCategory 
+    GROUP BY BookCategory.categoryId 
     ORDER BY count DESC),
     SelectCategories AS 
     (SELECT DISTINCT(CategoryTemp.categoryId) FROM CategoryTemp
