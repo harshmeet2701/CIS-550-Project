@@ -161,7 +161,7 @@ export default function SideBar(props) {
 
     setRedirect(true);
   }
-  console.log(auth);
+  // console.log(auth);
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
   var personalItem = "";
 
