@@ -393,11 +393,11 @@ export default function Recommendation() {
           <Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
             <Card className={classes.card}>
               <CardMedia className={classes.cardMedia}
-                image={readBookRec[5]}
+                image={readBookRec[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : readBookRec[2]}
               />
               <CardContent className={classes.cardContent}>
                 <Typography gutterBottom variant="h5" component="h4">
-                  {readBookRec[3]}
+                  {readBookRec[1]}
                 </Typography>
               </CardContent>
               <CardActions style={{ width: '100%' }}>
@@ -449,7 +449,7 @@ export default function Recommendation() {
           <Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
             <Card className={classes.card}>
               <CardMedia className={classes.cardMedia}
-              // image={nyTimesBookRec[5]}
+                image={nyTimesBookRec[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : nyTimesBookRec[2]}
               />
               <CardContent className={classes.cardContent}>
                 <Typography gutterBottom variant="h5" component="h4">
@@ -461,7 +461,7 @@ export default function Recommendation() {
                   View
               </Button>
                 <div style={{ width: '100%', textAlign: 'right' }}>
-                  <Button color="secondary" onClick={(event) => { handleLikedBooks('', '') }}>
+                  <Button color="secondary" onClick={(event) => { handleLikedBooks(event, nyTimesBookRec[0]) }}>
                     Like
                   </Button>
                   <Button color="primary" onClick={(event) => { handleReadBooks(event, nyTimesBookRec[0]) }}>
@@ -504,11 +504,11 @@ export default function Recommendation() {
           <Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
             <Card className={classes.card}>
               <CardMedia className={classes.cardMedia}
-                image={likedBookRec[5]}
+                image={likedBookRec[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : likedBookRec[2]}
               />
               <CardContent className={classes.cardContent}>
                 <Typography gutterBottom variant="h5" component="h4">
-                  {likedBookRec[3]}
+                  {likedBookRec[1]}
                 </Typography>
               </CardContent>
               <CardActions style={{ width: '100%' }}>
@@ -604,7 +604,7 @@ export default function Recommendation() {
                 <Grid item xs={4} style={{ display: 'flex', justifyContent: 'center', marginTop: '10%' }}>
                   <div>
                     {/* <img src= {'https://i.imgur.com/sJ3CT4V.gif'} style= {{width: "180%", objectFit: "contain",  boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)"}} /> */}
-                    <a href={selectedBook[5] ? selectedBook[5] : 'https://i.imgur.com/sJ3CT4V.gif'} target={'_blank'}><img alt={'Book'} src={selectedBook[5] ? selectedBook[5] : 'https://i.imgur.com/sJ3CT4V.gif'} style={{ width: "100%", objectFit: "contain", boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)" }} /></a>
+                    <a href={selectedBook[2] ? selectedBook[2] : 'https://i.imgur.com/sJ3CT4V.gif'} target={'_blank'}><img alt={'Book'} src={selectedBook[2] ? selectedBook[2] : 'https://i.imgur.com/sJ3CT4V.gif'} style={{ width: "100%", objectFit: "contain", boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)" }} /></a>
 
                     <Box component="fieldset" mb={3} borderColor="transparent">
                       <Typography component="legend">Rate Book</Typography>

@@ -268,7 +268,7 @@ function getBooksReadRec(req, res) {
       UNION 
       SELECT isbn FROM Temp2
     ) 
-    SELECT *
+    SELECT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages
     FROM isbn_temp INNER JOIN Books
     ON books.isbn = isbn_temp.isbn
     WHERE rownum <= 20
@@ -318,7 +318,7 @@ function getTopNYAuthorRec(req, res) {
     ),
     CombinedTemp AS
     (
-      SELECT DISTINCT Books.isbn  as isbn, books.title, BookAuthor.authorid, BookCategory.categoryid as categoryid, Books.rating
+      SELECT DISTINCT BookAuthor.authorid, BookCategory.categoryid as categoryid, books.*
       FROM Books
       INNER JOIN BookAuthor 
       ON BookAuthor.isbn = Books.isbn 
@@ -333,17 +333,21 @@ function getTopNYAuthorRec(req, res) {
       JOIN CategoryUC ON CategoryUC.categories = bmain.categoryid
       GROUP BY bmain.authorid 
       HAVING COUNT(bmain.categoryid) >= 3
-    )
-    SELECT * FROM
+    ), 
+    Final_table AS
     (
-      SELECT bs.*
-      FROM CombinedTemp bs
-      WHERE bs.authorId IN (SELECT authorid FROM BestsellingWithCategories)
-      AND  bs.isbn NOT IN (SELECT uc.isbn
-                           FROM MemberChoices uc
-                           WHERE uc.email = '${email}')
-      ORDER BY bs.rating DESC)
-      WHERE rownum < 21`;
+        SELECT bs.*
+        FROM CombinedTemp bs
+        WHERE bs.authorId IN (SELECT authorid FROM BestsellingWithCategories)
+        AND  bs.isbn NOT IN (SELECT uc.isbn
+                             FROM MemberChoices uc
+                             WHERE uc.email = 'akaushik@book.com')
+        AND rownum < 21
+        ORDER BY bs.rating DESC
+    )
+    SELECT isbn, title, img_url, description, url, publisher, publication_place, publication_date, rating, num_pages, lang, ages
+    FROM Final_table
+    `;
 
     con.execute(sql).then((response) => {
       console.log(response);
@@ -426,7 +430,7 @@ function getBooksLikedRec(req, res) {
       UNION 
       SELECT isbn FROM Temp2  
     )
-    SELECT *
+    SELECT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages
     FROM books INNER JOIN isbn_temp
     ON books.isbn = isbn_temp.isbn
     WHERE rownum <=20    
