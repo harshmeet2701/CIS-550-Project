@@ -341,7 +341,7 @@ function getTopNYAuthorRec(req, res) {
         WHERE bs.authorId IN (SELECT authorid FROM BestsellingWithCategories)
         AND  bs.isbn NOT IN (SELECT uc.isbn
                              FROM MemberChoices uc
-                             WHERE uc.email = 'akaushik@book.com')
+                             WHERE uc.email = '${email}')
         AND rownum < 21
         ORDER BY bs.rating DESC
     )
