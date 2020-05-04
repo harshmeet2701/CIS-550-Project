@@ -595,8 +595,8 @@ export default function Search() {
         <Container maxWidth="lg" >
         <Grid container xs = {12} spacing={2} className={classes.container}>
         <Grid item xs={2} spacing={2}>
-        <FormControl variant="filled">
-          <InputLabel htmlFor="filled-age-native-simple">Select Search Criteria</InputLabel>
+        <FormControl  className={classes.formControl}>
+          <InputLabel htmlFor="age-native-simple">Select Search Criteria</InputLabel>
           <Select
             native
             style={{ width: `${200}px` }}
@@ -611,7 +611,7 @@ export default function Search() {
           >
             <option aria-label="None" value="" />
             <option value={"title"}>Title</option>
-            <option value={"author"}>Authors</option>
+            <option value={"author"}>Author</option>
             <option value={"isbn"}>ISBN</option>
           </Select>
         </FormControl>

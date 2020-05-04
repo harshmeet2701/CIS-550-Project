@@ -9,6 +9,8 @@ import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Link from '@material-ui/core/Link';
+import Iframe from 'react-iframe'
+// import Frame from "react-frame-component";
 import SideBar from './SideBar';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
@@ -32,10 +34,6 @@ import CloseIcon from '@material-ui/icons/Close';
 import Table from '@material-ui/core/Table';
 import Slide from '@material-ui/core/Slide';
 import Rating from '@material-ui/lab/Rating';
-
-// import Chart from './Chart';
-// import Deposits from './Deposits';
-// import Orders from './Orders';
 
 function Copyright() {
   return (
@@ -177,6 +175,8 @@ export default function BestSeller() {
   const [newBooks, setNewBooks] = React.useState([]);
   const [titleForNewBooks, setTitleForNewBooks] = React.useState([]);
   const [titleForList, setTitleForList] = React.useState([]);
+  const [titleForArticles, setTitleForArticles] = React.useState([]);
+  const [frameT, setFrame] = React.useState([]);
   const auth = useSelector(state => state.auth);
   const [selectedBook, setSelBook] = useState("");
   const [index, setIndex] = useState(-1);
@@ -272,9 +272,54 @@ export default function BestSeller() {
     if (criteria === "author") {
       setDisplayVal(event1.target.value);
       getTopNYBooksAuthors(event1.target.value);
+      getNYTArticle(event1.target.value);
     }
   };
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+
+
+  function getNYTArticle(authorName){
+    var authorN = authorName.replace(" ","+");
+    fetch("https://api.nytimes.com/svc/books/v3/reviews.json?author="+ authorN + "&api-key=xMoAwWcjbIbdzUKPlGAEPkJxDxT5hqHF",
+      {
+        method: 'GET' // The type of HTTP request.
+      }).then(res => {
+        // Convert the response data to a JSON.
+        return res.json();
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      }).then(articleList => {
+        if (!articleList) return;
+        
+        var listSize = articleList.results.length;
+        var maxCount = 5;
+        maxCount = Math.min(maxCount, listSize);
+        var slicedList = [];
+        if(maxCount!=0){
+          slicedList = articleList.results.slice(1,maxCount);
+        }
+        let articleDivs = slicedList.map(articleName => (
+          <Iframe src={"https"+articleName['url'].toString().substring(4)} width="1200" height="300">
+          </Iframe>
+           ));
+        
+        setFrame(
+          articleDivs
+        );
+        if(articleList.results.length!=0){
+          setTitleForArticles(
+            'New York Times Reviews for ' + authorName
+          );
+        }
+      
+       
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      });
+  }
+
 
   function getTopPublishers() {
     fetch("http://localhost:8081/api/book/bestseller/publisher",
@@ -477,9 +522,9 @@ export default function BestSeller() {
         <div className={classes.appBarSpacer} />
 
         <Container maxWidth="lg" className={classes.container}>
-          <Grid container spacing={3}>
+          <Grid container spacing={4}>
             {/* Chart */}
-            <Grid item xs={12} md={8} lg={9}>
+            <Grid item xs={12}>
               <FormControl className={classes.formControl}>
                 <InputLabel htmlFor="age-native-simple">Criteria</InputLabel>
                 <Select
@@ -522,7 +567,6 @@ export default function BestSeller() {
                 {books}
               </GridList>
             </Grid>
-            {/* Recent Orders */}
             <Grid item xs={12}>
               <Typography variant="subtitle1" gutterBottom disable={true}>
                 {titleForNewBooks}
@@ -531,6 +575,14 @@ export default function BestSeller() {
                 {newBooks}
               </GridList>
             </Grid>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" gutterBottom disable={true}>
+                  {titleForArticles}
+                </Typography> 
+              <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
+                 {frameT}
+               </GridList>
           </Grid>
 
           <Dialog fullScreen open={openDailogue} onClose={handleCloseDailog} TransitionComponent={Transition}>
