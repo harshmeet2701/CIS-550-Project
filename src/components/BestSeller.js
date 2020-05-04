@@ -522,7 +522,7 @@ export default function BestSeller() {
         <div className={classes.appBarSpacer} />
 
         <Container maxWidth="lg" className={classes.container}>
-          <Grid container spacing={3}>
+          <Grid container spacing={4}>
             {/* Chart */}
             <Grid item xs={12}>
               <FormControl className={classes.formControl}>
