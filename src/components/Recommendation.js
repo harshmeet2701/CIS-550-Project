@@ -213,8 +213,6 @@ export default function Recommendation() {
     } else if (newValue == 0) {
       showrecommendationRead();
     }
-
-    alert(newValue);
   };
 
   useEffect(() => {
