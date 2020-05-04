@@ -295,7 +295,7 @@ function getTopNYAuthorRec(req, res) {
     const sql = `
     WITH NYAuthorTemp AS 
     (
-      select * from 
+      select authorid AUTHORID, count COUNT from 
       (
         SELECT DISTINCT(bookauthor.authorid) as authorId, COUNT(*) AS count 
         FROM (SELECT isbn FROM nytimesseller) NYT
@@ -308,7 +308,7 @@ function getTopNYAuthorRec(req, res) {
     ),
     CategoryUC AS
     (
-      select * from
+      select categories CATEGORIES from
       (
         SELECT DISTINCT(b.categoryId) AS categories
         FROM  BookCategory b
@@ -316,14 +316,19 @@ function getTopNYAuthorRec(req, res) {
         WHERE MemberChoices.email = '${email}'
       )
     ),
+    Book_isbn AS 
+    (
+        SELECT isbn
+        FROM Books
+    ),
     CombinedTemp AS
     (
-      SELECT DISTINCT BookAuthor.authorid, BookCategory.categoryid as categoryid, books.*
-      FROM Books
+      SELECT DISTINCT BookAuthor.authorid, BookCategory.categoryid as categoryid, Book_isbn.isbn
+      FROM Book_isbn
       INNER JOIN BookAuthor 
-      ON BookAuthor.isbn = Books.isbn 
+      ON BookAuthor.isbn = Book_isbn.isbn 
       INNER JOIN BookCategory 
-      ON Books.isbn = BookCategory.isbn
+      ON Book_isbn.isbn = BookCategory.isbn
     ),
     BestSellingWithCategories AS
     (
@@ -336,17 +341,18 @@ function getTopNYAuthorRec(req, res) {
     ), 
     Final_table AS
     (
-        SELECT bs.*
+        SELECT bs.isbn
         FROM CombinedTemp bs
         WHERE bs.authorId IN (SELECT authorid FROM BestsellingWithCategories)
         AND  bs.isbn NOT IN (SELECT uc.isbn
                              FROM MemberChoices uc
                              WHERE uc.email = '${email}')
-        AND rownum < 21
-        ORDER BY bs.rating DESC
-    )
-    SELECT isbn, title, img_url, description, url, publisher, publication_place, publication_date, rating, num_pages, lang, ages
-    FROM Final_table
+    )    
+    SELECT final_table.isbn, title, img_url, description, url, publisher, publication_place, publication_date, rating, num_pages, lang, ages
+    FROM Final_table JOIN Books
+    ON Final_table.isbn = Books.isbn
+    WHERE rownum < 20
+    ORDER BY books.rating DESC
     `;
 
     con.execute(sql).then((response) => {
