@@ -341,7 +341,7 @@ function getTopNYAuthorRec(req, res) {
     ), 
     Final_table AS
     (
-        SELECT bs.isbn
+        SELECT DISTINCT bs.isbn
         FROM CombinedTemp bs
         WHERE bs.authorId IN (SELECT authorid FROM BestsellingWithCategories)
         AND  bs.isbn NOT IN (SELECT uc.isbn
@@ -371,7 +371,7 @@ function getBooksLikedRec(req, res) {
     const sql = `
     WITH BookTemp AS
     (
-      SELECT isbn, rating
+      SELECT isbn
       FROM Books
     ),
     BookAuthorUC AS
@@ -382,7 +382,6 @@ function getBooksLikedRec(req, res) {
       ON bmain.isbn = uc.isbn
       INNER JOIN BookAuthor
       ON bmain.isbn = BookAuthor.isbn
-      ORDER BY bmain.rating desc
     ),
     UCTemp AS
     (
@@ -393,7 +392,7 @@ function getBooksLikedRec(req, res) {
     ),
     BooksSuggested AS 
     (
-      SELECT bma.isbn, bma.rating, BookAuthor.authorid
+      SELECT bma.isbn, BookAuthor.authorid
       FROM BookTemp bma
       INNER JOIN BookAuthor
       ON bma.isbn= BookAuthor.isbn
@@ -406,23 +405,21 @@ function getBooksLikedRec(req, res) {
       AND bCat.categoryId IN
       (
         SELECT BookCategory.categoryId
-        FROM  BookTemp
-        INNER JOIN BookCategory
-        ON BookTemp.isbn = BookCategory.isbn
-        INNER JOIN UCTemp ON BookTemp.isbn = UCTemp.isbn
+        FROM BookCategory
+        INNER JOIN UCTemp 
+        ON BookCategory.isbn = UCTemp.isbn
       )
     ), 
     Temp1 AS
     (
-      SELECT bs.isbn, bauc.authorid, bs.rating
+      SELECT bs.isbn, bauc.authorid
       FROM BooksSuggested bs
       INNER JOIN BookAuthorUC bauc
       ON bauc.isbn = bs.isbn
-      ORDER BY bauc.authorid DESC
     ),
     Temp2 AS 
     (
-      SELECT bs.isbn, bs.authorid, bs.rating
+      SELECT bs.isbn, bs.authorid
       FROM BooksSuggested bs
       WHERE bs.authorid NOT IN 
       (
@@ -437,7 +434,7 @@ function getBooksLikedRec(req, res) {
       SELECT isbn FROM Temp2  
     )
     SELECT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages
-    FROM books INNER JOIN isbn_temp
+    FROM isbn_temp INNER JOIN books
     ON books.isbn = isbn_temp.isbn
     WHERE rownum <=20    
     `;
