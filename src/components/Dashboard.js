@@ -175,9 +175,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     console.log('In Dashboard');
-    getReadBooks();
     getLikedBooks();
-  }, [books, likedbooks]);
+    getReadBooks();
+  }, []);
 
   const handleCloseDailog = () => {
     saveRating(selectedBook[0]);
@@ -212,9 +212,9 @@ export default function Dashboard() {
     setIndex(index);
     setType(booktype);
 
-    if(booktype === 'read') {
+    if (booktype === 'read') {
       setRating(ratingsRead[index]);
-    }else if(booktype === 'like') {
+    } else if (booktype === 'like') {
       setRating(ratingsLike[index]);
     }
     setOpenDailogue(true);
@@ -224,9 +224,9 @@ export default function Dashboard() {
     console.log('Sel Rating:', selectedrating);
     if (type === 'read') {
       ratingsRead[index] = selectedrating;
-    }else if(type === 'like') {
+    } else if (type === 'like') {
       ratingsLike[index] = selectedrating;
-    } 
+    }
     console.log('Ratings:', ratingsRead[index]);
 
     fetch('http://localhost:8081/api/user/rateBook/' + isbn, {
@@ -248,7 +248,8 @@ export default function Dashboard() {
 
   // Add code to display the to read and liked book
   function getReadBooks() {
-    fetch("http://localhost:8081/api/book/search/title/" + "dan",
+    const email = auth.auth;
+    fetch("http://localhost:8081/api/book/dashboard/read/" + email,
       {
         method: 'GET' // The type of HTTP request.
       }).then(res => {
@@ -265,18 +266,18 @@ export default function Dashboard() {
         let readBookDivs = readBookList.rows.map((readBookItem, i) => {
           ratingsRead.push(readBookItem[14]);
           return (
-          <GridListTile className={classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(readBookItem, i, "read")}>
-            <img src={readBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : readBookItem[2]} alt={readBookItem[1]} style={{ height: '240px', width: '160px' }} />
-            <GridListTileBar
-              title={readBookItem[1]}
-              classes={{
-                root: classes.titleBar,
-                title: classes.title,
-              }}
-            />
-          </GridListTile>
+            <GridListTile className={classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(readBookItem, i, "read")}>
+              <img src={readBookItem[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : readBookItem[4]} alt={readBookItem[3]} style={{ height: '240px', width: '160px' }} />
+              <GridListTileBar
+                title={readBookItem[1]}
+                classes={{
+                  root: classes.titleBar,
+                  title: classes.title,
+                }}
+              />
+            </GridListTile>
 
-          ) 
+          )
         });
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
@@ -291,8 +292,9 @@ export default function Dashboard() {
   }
 
   function getLikedBooks() {
-    // fetch("http://localhost:8081/api/book/dashboard/liked",
-    fetch("http://localhost:8081/api/book/search/title/" + "harry",
+    const email = auth.auth;
+
+    fetch("http://localhost:8081/api/book/dashboard/liked/" + email,
       {
         method: 'GET' // The type of HTTP request.
       }).then(res => {
@@ -300,6 +302,7 @@ export default function Dashboard() {
         return res.json();
       }, err => {
         // Print the error if there is one.
+        alert("Error");
         console.log(err);
       }).then(pubBookList => {
         if (!pubBookList) return;
@@ -307,21 +310,22 @@ export default function Dashboard() {
         ratingsLike = []
 
         let likedBookDivs = pubBookList.rows.map((likedBookItem, i) => {
-        ratingsLike.push(likedBookItem[14]);
 
-         return (
-         <GridListTile className={classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(likedBookItem, i, "like")}>
-            <img src={likedBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : likedBookItem[2]} alt={likedBookItem[1]} style={{ height: '240px', width: '160px' }} />
-            <GridListTileBar
-              title={likedBookItem[1]}
-              classes={{
-                root: classes.titleBar,
-                title: classes.title,
-              }}
-            />
-          </GridListTile>
-        )
-          });
+          ratingsLike.push(likedBookItem[14]);
+
+          return (
+            <GridListTile className={classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(likedBookItem, i, "like")}>
+              <img src={likedBookItem[4] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : likedBookItem[4]} alt={likedBookItem[3]} style={{ height: '240px', width: '160px' }} />
+              <GridListTileBar
+                title={likedBookItem[1]}
+                classes={{
+                  root: classes.titleBar,
+                  title: classes.title,
+                }}
+              />
+            </GridListTile>
+          )
+        });
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
         setLikedBooks(
@@ -352,7 +356,7 @@ export default function Dashboard() {
             <Typography variant="h5" gutterBottom>
               Liked List
                 </Typography>
-            <GridList cellHeight={300} spacing={1} className={classes.gridList} cols={5}>
+            <GridList cellHeight={300} spacing={1} className={classes.gridList}>
               {likedbooks}
             </GridList>
           </Grid>
@@ -373,19 +377,19 @@ export default function Dashboard() {
                 <Grid item xs={4} style={{ display: 'flex', justifyContent: 'center', marginTop: '10%' }}>
                   <div>
                     {/* <img src= {'https://i.imgur.com/sJ3CT4V.gif'} style= {{width: "180%", objectFit: "contain",  boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)"}} /> */}
-                    <a href={selectedBook[2] ? selectedBook[2] : 'https://i.imgur.com/sJ3CT4V.gif'} target={'_blank'}><img alt={'Book'} src={selectedBook[2] ? selectedBook[2] : 'https://i.imgur.com/sJ3CT4V.gif'} style={{ width: "100%", objectFit: "contain", boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)" }} /></a>
-                  
-                  <Box component="fieldset" mb={3} borderColor="transparent">
-                    <Typography component="legend">Rate Book</Typography>
-                    <Rating
-                      name="book-rating"
-                      value={selectedrating ? selectedrating : 0}
-                      onChange={(event, newValue) => {
-                        // sel[index] = newValue;
-                        setRating(newValue);
-                      }}
-                    />
-                </Box>
+                    <a href={selectedBook[4] ? selectedBook[4] : 'https://i.imgur.com/sJ3CT4V.gif'} target={'_blank'}><img alt={'Book'} src={selectedBook[4] ? selectedBook[4] : 'https://i.imgur.com/sJ3CT4V.gif'} style={{ width: "100%", objectFit: "contain", boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)" }} /></a>
+
+                    <Box component="fieldset" mb={3} borderColor="transparent">
+                      <Typography component="legend">Rate Book</Typography>
+                      <Rating
+                        name="book-rating"
+                        value={selectedrating ? selectedrating : 0}
+                        onChange={(event, newValue) => {
+                          // sel[index] = newValue;
+                          setRating(newValue);
+                        }}
+                      />
+                    </Box>
                   </div>
                 </Grid>
 

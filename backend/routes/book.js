@@ -24,6 +24,63 @@ router.get('/categories/topRated/:categoryName', (req, res) => getTopCategoryRat
 router.get('/movies', (req, res) => getMovies(req, res));
 router.get('/getAuthors/:isbn', (req, res) => getAuthors(req, res));
 
+router.get('/dashboard/liked/:email', (req, res) => getDashboardLiked(req, res));
+router.get('/dashboard/read/:email', (req, res) => getDashboardRead(req, res));
+
+function getDashboardLiked(req, res) {
+  var email = req.params.email;
+
+  connection.then((con) => {
+    const sql = `
+    WITH userBooksISBN AS
+    (
+      SELECT distinct(isbn)
+      FROM memberchoices
+      WHERE memberchoices.email = '${email}' AND likeflag = 1
+    ),
+    bookstemp as
+    (
+      select * 
+      from books
+      where isbn in (select * from userbooksisbn)
+    )
+    select * 
+    from bookstemp`;
+    con.execute(sql).then((response) => {
+      console.log(response);
+      res.json(response);
+    })
+  });
+}
+
+
+
+function getDashboardRead(req, res) {
+  var email = req.params.email;
+
+  connection.then((con) => {
+    const sql = `
+    WITH userBooksISBN AS
+    (
+      SELECT distinct(isbn)
+      FROM memberchoices
+      WHERE memberchoices.email = '${email}' AND readflag = 1
+    ),
+    bookstemp as
+    (
+      select * 
+      from books
+      where isbn in (select * from userbooksisbn)
+    )
+    select * 
+    from bookstemp`;
+    con.execute(sql).then((response) => {
+      console.log(response);
+      res.json(response);
+    })
+  });
+}
+
 
 function getBooks(req, res) {
   console.log('READ all users');
