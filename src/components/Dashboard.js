@@ -13,7 +13,6 @@ import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import GridListTileBar from '@material-ui/core/GridListTileBar';
 import IconButton from '@material-ui/core/IconButton';
-import StarBorderIcon from '@material-ui/icons/StarBorder';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Dialog from '@material-ui/core/Dialog';
@@ -146,7 +145,8 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-var ratings = [];
+var ratingsRead = [];
+var ratingsLike = [];
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -161,6 +161,7 @@ export default function Dashboard() {
   const [selectedBook, setSelBook] = useState("");
   const [index, setIndex] = useState(-1);
   const [selectedrating, setRating] = useState(0);
+  const [type, setType] = useState("");
   const [openDailogue, setOpenDailogue] = React.useState(false);
   const [authors, setAuthors] = useState([]);
 
@@ -176,7 +177,7 @@ export default function Dashboard() {
     console.log('In Dashboard');
     getReadBooks();
     getLikedBooks();
-  })
+  }, [books, likedbooks]);
 
   const handleCloseDailog = () => {
     saveRating(selectedBook[0]);
@@ -205,18 +206,28 @@ export default function Dashboard() {
       })
   }
 
-  const handleListItemClick = (authBookItem, index) => {
+  const handleListItemClick = (authBookItem, index, booktype) => {
     getAuthors(authBookItem[0]);
     setSelBook(authBookItem);
     setIndex(index);
-    setRating(ratings[index]);
+    setType(booktype);
+
+    if(booktype === 'read') {
+      setRating(ratingsRead[index]);
+    }else if(booktype === 'like') {
+      setRating(ratingsLike[index]);
+    }
     setOpenDailogue(true);
   };
 
   const saveRating = (isbn) => {
     console.log('Sel Rating:', selectedrating);
-    ratings[index] = selectedrating;
-    console.log('Ratings:', ratings[index]);
+    if (type === 'read') {
+      ratingsRead[index] = selectedrating;
+    }else if(type === 'like') {
+      ratingsLike[index] = selectedrating;
+    } 
+    console.log('Ratings:', ratingsRead[index]);
 
     fetch('http://localhost:8081/api/user/rateBook/' + isbn, {
       method: 'POST',
@@ -249,9 +260,12 @@ export default function Dashboard() {
       }).then(readBookList => {
         if (!readBookList) return;
         console.log(readBookList);
+        ratingsRead = [];
 
-        let readBookDivs = readBookList.rows.map((readBookItem, i) => (
-          <GridListTile className={classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(readBookItem, i)}>
+        let readBookDivs = readBookList.rows.map((readBookItem, i) => {
+          ratingsRead.push(readBookItem[14]);
+          return (
+          <GridListTile className={classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(readBookItem, i, "read")}>
             <img src={readBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : readBookItem[2]} alt={readBookItem[1]} style={{ height: '240px', width: '160px' }} />
             <GridListTileBar
               title={readBookItem[1]}
@@ -262,7 +276,8 @@ export default function Dashboard() {
             />
           </GridListTile>
 
-        ));
+          ) 
+        });
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
         setBooks(
@@ -289,9 +304,13 @@ export default function Dashboard() {
       }).then(pubBookList => {
         if (!pubBookList) return;
         console.log(pubBookList);
+        ratingsLike = []
 
-        let likedBookDivs = pubBookList.rows.map((likedBookItem, i) => (
-          <GridListTile className={classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(likedBookItem, i)}>
+        let likedBookDivs = pubBookList.rows.map((likedBookItem, i) => {
+        ratingsLike.push(likedBookItem[14]);
+
+         return (
+         <GridListTile className={classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(likedBookItem, i, "like")}>
             <img src={likedBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : likedBookItem[2]} alt={likedBookItem[1]} style={{ height: '240px', width: '160px' }} />
             <GridListTileBar
               title={likedBookItem[1]}
@@ -301,8 +320,8 @@ export default function Dashboard() {
               }}
             />
           </GridListTile>
-
-        ));
+        )
+          });
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
         setLikedBooks(
@@ -355,6 +374,18 @@ export default function Dashboard() {
                   <div>
                     {/* <img src= {'https://i.imgur.com/sJ3CT4V.gif'} style= {{width: "180%", objectFit: "contain",  boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)"}} /> */}
                     <a href={selectedBook[2] ? selectedBook[2] : 'https://i.imgur.com/sJ3CT4V.gif'} target={'_blank'}><img alt={'Book'} src={selectedBook[2] ? selectedBook[2] : 'https://i.imgur.com/sJ3CT4V.gif'} style={{ width: "100%", objectFit: "contain", boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)" }} /></a>
+                  
+                  <Box component="fieldset" mb={3} borderColor="transparent">
+                    <Typography component="legend">Rate Book</Typography>
+                    <Rating
+                      name="book-rating"
+                      value={selectedrating ? selectedrating : 0}
+                      onChange={(event, newValue) => {
+                        // sel[index] = newValue;
+                        setRating(newValue);
+                      }}
+                    />
+                </Box>
                   </div>
                 </Grid>
 
