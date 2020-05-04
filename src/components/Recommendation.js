@@ -206,13 +206,20 @@ export default function Recommendation() {
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+    if (newValue == 1) {
+      showrecommendationLiked();
+    } else if (newValue == 2) {
+      showrecommendationNyTimes();
+    } else if (newValue == 0) {
+      showrecommendationRead();
+    }
+
+    alert(newValue);
   };
 
   useEffect(() => {
-    console.log('In Dashboard');
+    console.log('In Recommendation');
     showrecommendationRead();
-    showrecommendationLiked();
-    showrecommendationNyTimes();
   }, []);
 
   const handleCloseDailog = () => {
