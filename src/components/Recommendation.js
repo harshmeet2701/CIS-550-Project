@@ -21,6 +21,17 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
+import Dialog from '@material-ui/core/Dialog';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableRow from '@material-ui/core/TableRow';
+import Toolbar from '@material-ui/core/Toolbar';
+import CloseIcon from '@material-ui/icons/Close';
+import Table from '@material-ui/core/Table';
+import Slide from '@material-ui/core/Slide';
+import Rating from '@material-ui/lab/Rating';
 
 const drawerWidth = 240;
 
@@ -135,6 +146,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -169,6 +184,8 @@ function a11yProps(index) {
 }
 
 var ratings = [];
+var ratingsRead = [];
+var ratingsLike = [];
 
 export default function Recommendation() {
   const classes = useStyles();
@@ -178,20 +195,59 @@ export default function Recommendation() {
   const [readBookRec, setreadRecBooks] = React.useState([]);
   const [likedBookRec, setlikedRecBooks] = React.useState([]);
   const [nyTimesBookRec, setnyTimesRecBooks] = React.useState([]);
+  const [openDailogue, setOpenDailogue] = React.useState(false);
+  const [type, setType] = useState("");
+  const [index, setIndex] = useState(-1);
+  const [selectedBook, setSelBook] = useState("");
+  const [authors, setAuthors] = useState([]);
 
   const theme = useTheme();
   const auth = useSelector(state => state.auth);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+  };
+
+  useEffect(() => {
+    console.log('In Dashboard');
     showrecommendationRead();
     showrecommendationLiked();
     showrecommendationNyTimes();
-  };
+  }, []);
+
+  const handleCloseDailog = () => {
+    saveRating(selectedBook[0]);
+    setOpenDailogue(false);
+  }
 
   const handleChangeIndex = (index) => {
     setValue(index);
   };
+
+  const saveRating = (isbn) => {
+    console.log('Sel Rating:', selectedrating);
+    if (type === 'read') {
+      ratingsRead[index] = selectedrating;
+    } else if (type === 'like') {
+      ratingsLike[index] = selectedrating;
+    }
+    console.log('Ratings:', ratingsRead[index]);
+
+    fetch('http://localhost:8081/api/user/rateBook/' + isbn, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email: auth.auth, rating: selectedrating })
+    })
+      .then(resp => resp.json())
+      .then(resp => {
+        if (resp.message === 'success') {
+          console.log('Rating Updated');
+        }
+      });
+  }
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -203,8 +259,34 @@ export default function Recommendation() {
 
   // Function when view is clicked
   const handleListItemClick = (book, index) => {
-    // PopUp book details
+    getAuthors(book[0]);
+    setSelBook(book);
+    setIndex(index);
+    setRating(ratings[index]);
+    setOpenDailogue(true);
   };
+
+  const getAuthors = (isbn) => {
+
+    fetch('http://localhost:8081/api/book/getAuthors/' + isbn, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(resp => resp.json())
+      .then(authorList => {
+        console.log('getAuthors: ', authorList);
+        if (!authorList) return;
+
+        if (!authorList.rows) {
+          setAuthors([]);
+        } else {
+          setAuthors(authorList.rows);
+        }
+      })
+  }
 
   const handleLikedBooks = (event, isbn) => {
     const button = event.target;
@@ -286,7 +368,7 @@ export default function Recommendation() {
 
   const showrecommendationRead = () => {
     const email = auth.auth;
-    fetch("http://localhost:8081/api/book/recommended/booksRead" + email,
+    fetch("http://localhost:8081/api/book/recommended/booksRead/" + email,
       {
         method: 'GET' // The type of HTTP request.
       }).then(res => {
@@ -314,7 +396,7 @@ export default function Recommendation() {
                 </Typography>
               </CardContent>
               <CardActions style={{ width: '100%' }}>
-                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick('', '')}>
+                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick(readBookRec, i)}>
                   View
               </Button>
                 <div style={{ width: '100%', textAlign: 'right' }}>
@@ -344,7 +426,7 @@ export default function Recommendation() {
 
   const showrecommendationNyTimes = () => {
     const email = auth.auth;
-    fetch("http://localhost:8081/api/book/recommended/nyauthor" + email,
+    fetch("http://localhost:8081/api/book/recommended/nyauthor/" + email,
       {
         method: 'GET' // The type of HTTP request.
       }).then(res => {
@@ -356,6 +438,7 @@ export default function Recommendation() {
       }).then(nyTimesBookRecList => {
         if (!nyTimesBookRecList) return;
         console.log(nyTimesBookRecList);
+        ratingsLike = []
 
         let nyTimesBookRecDivs = nyTimesBookRecList.rows.map((nyTimesBookRec, i) => (
           <Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
@@ -369,11 +452,11 @@ export default function Recommendation() {
                 </Typography>
               </CardContent>
               <CardActions style={{ width: '100%' }}>
-                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick('', '')}>
+                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick(nyTimesBookRec, i)}>
                   View
               </Button>
                 <div style={{ width: '100%', textAlign: 'right' }}>
-                  <Button color="secondary" onClick={(event) => { handleLikedBooks(event, nyTimesBookRec[0]) }}>
+                  <Button color="secondary" onClick={(event) => { handleLikedBooks('', '') }}>
                     Like
                   </Button>
                   <Button color="primary" onClick={(event) => { handleReadBooks(event, nyTimesBookRec[0]) }}>
@@ -399,7 +482,7 @@ export default function Recommendation() {
 
   const showrecommendationLiked = () => {
     const email = auth.auth;
-    fetch("http://localhost:8081/api/book/recommended/booksLiked" + email,
+    fetch("http://localhost:8081/api/book/recommended/booksLiked/" + email,
       {
         method: 'GET' // The type of HTTP request.
       }).then(res => {
@@ -424,7 +507,7 @@ export default function Recommendation() {
                 </Typography>
               </CardContent>
               <CardActions style={{ width: '100%' }}>
-                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick('', '')}>
+                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick(likedBookRec, i)}>
                   View
               </Button>
                 <div style={{ width: '100%', textAlign: 'right' }}>
@@ -500,6 +583,206 @@ export default function Recommendation() {
               </Grid>
             </TabPanel>
           </SwipeableViews>
+          <Dialog fullScreen open={openDailogue} onClose={handleCloseDailog} TransitionComponent={Transition}>
+            <AppBar className={classes.appBar}>
+              <Toolbar>
+                <IconButton edge="start" color="inherit" onClick={handleCloseDailog} aria-label="close">
+                  <CloseIcon />
+                </IconButton>
+                <Typography variant="h6" className={classes.title}>
+                  Book Details
+              </Typography>
+              </Toolbar>
+            </AppBar>
+            <Container maxWidth="lg">
+              <Grid container xs={12} spacing={2} className={classes.container} >
+                <Grid item xs={4} style={{ display: 'flex', justifyContent: 'center', marginTop: '10%' }}>
+                  <div>
+                    {/* <img src= {'https://i.imgur.com/sJ3CT4V.gif'} style= {{width: "180%", objectFit: "contain",  boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)"}} /> */}
+                    <a href={selectedBook[5] ? selectedBook[5] : 'https://i.imgur.com/sJ3CT4V.gif'} target={'_blank'}><img alt={'Book'} src={selectedBook[5] ? selectedBook[5] : 'https://i.imgur.com/sJ3CT4V.gif'} style={{ width: "100%", objectFit: "contain", boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)" }} /></a>
+
+                    <Box component="fieldset" mb={3} borderColor="transparent">
+                      <Typography component="legend">Rate Book</Typography>
+                      <Rating
+                        name="book-rating"
+                        value={selectedrating ? selectedrating : 0}
+                        onChange={(event, newValue) => {
+                          // sel[index] = newValue;
+                          setRating(newValue);
+                        }}
+                      />
+                    </Box>
+                  </div>
+                </Grid>
+
+                <Grid item xs={8} style={{ display: 'flex', marginTop: '5%' }}>
+                  <TableContainer component={Paper}>
+                    <Table className={classes.table} aria-label="simple table">
+                      <TableBody>
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              ISBN:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" style={{ width: '15rem' }}>
+                            <Typography variant="h6">
+                              {selectedBook[0]}
+                            </Typography>
+                          </TableCell>
+
+                          <TableCell align="left">
+                            <Typography variant="h5" component="h1">
+                              Rating:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h6">
+                              {selectedBook[8]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              Title:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h7">
+                              {selectedBook[1]}
+                            </Typography>
+                          </TableCell>
+
+                          <TableCell align="left">
+                            <Typography variant="h5" component="h1">
+                              Pages:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h6">
+                              {selectedBook[9]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              Description
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h7">
+                              {selectedBook[3]}
+                            </Typography>
+                          </TableCell>
+
+                          <TableCell align="left">
+                            <Typography variant="h5" component="h1">
+                              Language:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h6">
+                              {selectedBook[10]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              URL
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h9">
+                              <a href={selectedBook[4] ? selectedBook[4] : ''} target={'_blank'}>{selectedBook[4]}</a>
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h6">
+                              {selectedBook[11]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              Authors:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+
+                            <Table aria-label="simple table">
+                              {authors.map((author, i) => {
+                                return (
+                                  <TableRow>
+                                    <TableCell align="left" >
+                                      <Typography variant="h7">
+                                        {author.WIKIURL ? <a href={author.WIKIURL} target={'_blank'}> {author.AUTHORNAME} </a> : author.AUTHORNAME}
+                                      </Typography>
+                                    </TableCell>
+                                  </TableRow>
+                                )
+                              })}
+                            </Table>
+
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              Publisher:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            {/* Selected Publisher */}
+                            <Typography variant="h7">
+                              {selectedBook[5]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '12rem' }}>
+                            <Typography variant="h5" component="h1">
+                              Publication Place:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            {/* Selected Place */}
+                            <Typography variant="h7">
+                              {selectedBook[6]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell align="left" style={{ width: '5em' }}>
+                            <Typography variant="h5" component="h1">
+                              Publication Date:
+                    </Typography>
+                          </TableCell>
+                          <TableCell align="left" >
+                            {/* Selected ISBN */}
+                            <Typography variant="h6">
+                              {selectedBook[7]}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Grid>
+              </Grid>
+            </Container>
+          </Dialog>
         </div>
       </main>
     </div>
