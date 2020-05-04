@@ -20,7 +20,7 @@ import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
-import {useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 
 const drawerWidth = 240;
 
@@ -104,7 +104,7 @@ const useStyles = makeStyles((theme) => ({
   tabs: {
     backgroundColor: theme.palette.background.paper,
     width: '100%',
-  }, 
+  },
   card: {
     maxWidth: '50',
     height: '100%',
@@ -113,9 +113,9 @@ const useStyles = makeStyles((theme) => ({
     }
   },
   cardMedia: {
-  //  height: '75%', 
-  height: 0,
-  paddingTop: '87.25%', // 16:9
+    //  height: '75%', 
+    height: 0,
+    paddingTop: '87.25%', // 16:9
   },
   cardContent: {
     height: '20%',
@@ -175,12 +175,18 @@ export default function Recommendation() {
   const [open, setOpen] = React.useState(true);
   const [value, setValue] = React.useState(0);
   const [selectedrating, setRating] = React.useState(0);
+  const [readBookRec, setreadRecBooks] = React.useState([]);
+  const [likedBookRec, setlikedRecBooks] = React.useState([]);
+  const [nyTimesBookRec, setnyTimesRecBooks] = React.useState([]);
 
   const theme = useTheme();
   const auth = useSelector(state => state.auth);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+    showrecommendationRead();
+    showrecommendationLiked();
+    showrecommendationNyTimes();
   };
 
   const handleChangeIndex = (index) => {
@@ -193,7 +199,7 @@ export default function Recommendation() {
   const handleDrawerClose = () => {
     setOpen(false);
   };
-  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);  
+  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
   // Function when view is clicked
   const handleListItemClick = (book, index) => {
@@ -202,229 +208,299 @@ export default function Recommendation() {
 
   const handleLikedBooks = (event, isbn) => {
     const button = event.target;
- 
-    if(button.innerHTML === 'Like') {
+
+    if (button.innerHTML === 'Like') {
       // fetch call for Like make likeFlag: 1
-      fetch('http://localhost:8081/api/user/likeBook/'+isbn, {
-         method: 'POST',
-         headers: {
-           'Accept': 'application/json',
-           'Content-Type': 'application/json'    
-         },
-         body:JSON.stringify({email: auth.auth, id:1})
-       })
-       .then(resp => resp.json())
-       .then(resp => {
-         if(resp.message === 'success') {
-           button.innerHTML = 'UnLike';
-         }
-       });
-    }else if(button.innerHTML === 'UnLike') {
+      fetch('http://localhost:8081/api/user/likeBook/' + isbn, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: auth.auth, id: 1 })
+      })
+        .then(resp => resp.json())
+        .then(resp => {
+          if (resp.message === 'success') {
+            button.innerHTML = 'UnLike';
+          }
+        });
+    } else if (button.innerHTML === 'UnLike') {
       // fetch call for Unlike make likeFlag: 0
-      fetch('http://localhost:8081/api/user/likeBook/'+isbn, {
-         method: 'POST',
-         headers: {
-           'Accept': 'application/json',
-           'Content-Type': 'application/json'    
-         },
-         body:JSON.stringify({email: auth.auth, id:0})
-       })
-       .then(resp => resp.json())
-       .then(resp => {
-         if(resp.message === 'success') {
-           button.innerHTML = 'Like';
-         }
-       });
+      fetch('http://localhost:8081/api/user/likeBook/' + isbn, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: auth.auth, id: 0 })
+      })
+        .then(resp => resp.json())
+        .then(resp => {
+          if (resp.message === 'success') {
+            button.innerHTML = 'Like';
+          }
+        });
     }
-   }
- 
-   const handleReadBooks = (event, isbn) => {
-     const button = event.target;
- 
-     if(button.innerHTML === 'Mark Read') {
-       // fetch call for Read make readFlag: 1
-       fetch('http://localhost:8081/api/user/readBook/'+isbn, {
-         method: 'POST',
-         headers: {
-           'Accept': 'application/json',
-           'Content-Type': 'application/json'    
-         },
-         body:JSON.stringify({email: auth.auth, id:1})
-       })
-       .then(resp => resp.json())
-       .then(resp => {
-         if(resp.message === 'success') {
-           button.innerHTML = 'Mark UnRead';
-         }
-       });
- 
-     }else if(button.innerHTML === 'Mark UnRead') {
-       // fetch call for UnRead make readFlag: 0
-       fetch('http://localhost:8081/api/user/readBook/'+isbn, {
-         method: 'POST',
-         headers: {
-           'Accept': 'application/json',
-           'Content-Type': 'application/json'    
-         },
-         body:JSON.stringify({email: auth.auth, id:0})
-       })
-       .then(resp => resp.json())
-       .then(resp => {
-         if(resp.message === 'success') {
-           button.innerHTML = 'Mark Read';
-         }
-       });
-     }
-   }
+  }
+
+  const handleReadBooks = (event, isbn) => {
+    const button = event.target;
+
+    if (button.innerHTML === 'Mark Read') {
+      // fetch call for Read make readFlag: 1
+      fetch('http://localhost:8081/api/user/readBook/' + isbn, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: auth.auth, id: 1 })
+      })
+        .then(resp => resp.json())
+        .then(resp => {
+          if (resp.message === 'success') {
+            button.innerHTML = 'Mark UnRead';
+          }
+        });
+
+    } else if (button.innerHTML === 'Mark UnRead') {
+      // fetch call for UnRead make readFlag: 0
+      fetch('http://localhost:8081/api/user/readBook/' + isbn, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: auth.auth, id: 0 })
+      })
+        .then(resp => resp.json())
+        .then(resp => {
+          if (resp.message === 'success') {
+            button.innerHTML = 'Mark Read';
+          }
+        });
+    }
+  }
 
 
-  const showrecommendation1 = () => {
+  const showrecommendationRead = () => {
     const email = auth.auth;
+    fetch("http://localhost:8081/api/book/recommended/booksRead" + email,
+      {
+        method: 'GET' // The type of HTTP request.
+      }).then(res => {
+        // Convert the response data to a JSON.
+        return res.json();
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      }).then(readBookRecList => {
+        if (!readBookRecList) return;
+        console.log(readBookRecList);
 
-    // Fetch Call
-
-    let recdiv =  < Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
+        let readBookRecDivs = readBookRecList.rows.map((readBookRec, i) => (
+          // 0 - 1 - ISBN
+          // 2 - Title, 3 - Desc , 4 -URL, 5 - IMG_URL, 6 - Publisher, 7 - Publisher Date, 8 - Publishing Place, 9 - Rating
+          // 10 - Format_name, 11 - NUM_Pages, 12 - Lang, 13- Ages
+          <Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
             <Card className={classes.card}>
-              <CardMedia className ={classes.cardMedia}
-                image={'https://s1.nyt.com/du/books/images/9781476746586.jpg'}
+              <CardMedia className={classes.cardMedia}
+                image={readBookRec[5]}
               />
               <CardContent className={classes.cardContent}>
                 <Typography gutterBottom variant="h5" component="h4">
-                TITLE PLACE HOLDER
+                  {readBookRec[3]}
                 </Typography>
               </CardContent>
-              <CardActions style={{width:'100%'}}>
-              <Button size="medium" color="textSecondary" onClick = {() => handleListItemClick('', '')}>
+              <CardActions style={{ width: '100%' }}>
+                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick('', '')}>
                   View
               </Button>
-              <div style={{width: '100%', textAlign:'right'}}>  
-              <Button color="secondary" onClick={(event) => {handleLikedBooks(event, 'put isbn here')}}>
-               Like 
-              </Button>
-
-              <Button color="primary" onClick={(event) => {handleReadBooks(event, 'put isbn here')}}>
-                Mark read
-              </Button>
-              </div>       
+                <div style={{ width: '100%', textAlign: 'right' }}>
+                  <Button color="secondary" onClick={(event) => { handleLikedBooks(event, readBookRec[0]) }}>
+                    Like
+                  </Button>
+                  <Button color="primary" onClick={(event) => { handleReadBooks(event, readBookRec[0]) }}>
+                    Mark read
+                  </Button>
+                </div>
               </CardActions>
             </Card>
-        </Grid >
+          </Grid >
 
+        ));
+
+        // Set the state of the genres list to the value returned by the HTTP response from the server.
+        setreadRecBooks(
+          readBookRecDivs
+        );
+
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      });
+  }
+
+  const showrecommendationNyTimes = () => {
+    const email = auth.auth;
+    fetch("http://localhost:8081/api/book/recommended/nyauthor" + email,
+      {
+        method: 'GET' // The type of HTTP request.
+      }).then(res => {
+        // Convert the response data to a JSON.
+        return res.json();
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      }).then(nyTimesBookRecList => {
+        if (!nyTimesBookRecList) return;
+        console.log(nyTimesBookRecList);
+
+        let nyTimesBookRecDivs = nyTimesBookRecList.rows.map((nyTimesBookRec, i) => (
+          <Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
+            <Card className={classes.card}>
+              <CardMedia className={classes.cardMedia}
+              // image={nyTimesBookRec[5]}
+              />
+              <CardContent className={classes.cardContent}>
+                <Typography gutterBottom variant="h5" component="h4">
+                  {nyTimesBookRec[1]}
+                </Typography>
+              </CardContent>
+              <CardActions style={{ width: '100%' }}>
+                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick('', '')}>
+                  View
+              </Button>
+                <div style={{ width: '100%', textAlign: 'right' }}>
+                  <Button color="secondary" onClick={(event) => { handleLikedBooks(event, nyTimesBookRec[0]) }}>
+                    Like
+                  </Button>
+                  <Button color="primary" onClick={(event) => { handleReadBooks(event, nyTimesBookRec[0]) }}>
+                    Mark read
+                  </Button>
+                </div>
+              </CardActions>
+            </Card>
+          </Grid >
+
+        ));
+
+        // Set the state of the genres list to the value returned by the HTTP response from the server.
+        setnyTimesRecBooks(
+          nyTimesBookRecDivs
+        );
+
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      });
+  }
+
+  const showrecommendationLiked = () => {
+    const email = auth.auth;
+    fetch("http://localhost:8081/api/book/recommended/booksLiked" + email,
+      {
+        method: 'GET' // The type of HTTP request.
+      }).then(res => {
+        // Convert the response data to a JSON.
+        return res.json();
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      }).then(likedBookRecList => {
+        if (!likedBookRecList) return;
+        console.log(likedBookRecList);
+
+        let likedBookRecDivs = likedBookRecList.rows.map((likedBookRec, i) => (
+          <Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
+            <Card className={classes.card}>
+              <CardMedia className={classes.cardMedia}
+                image={likedBookRec[5]}
+              />
+              <CardContent className={classes.cardContent}>
+                <Typography gutterBottom variant="h5" component="h4">
+                  {likedBookRec[3]}
+                </Typography>
+              </CardContent>
+              <CardActions style={{ width: '100%' }}>
+                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick('', '')}>
+                  View
+              </Button>
+                <div style={{ width: '100%', textAlign: 'right' }}>
+                  <Button color="secondary" onClick={(event) => { handleLikedBooks(event, likedBookRec[0]) }}>
+                    Like
+                  </Button>
+                  <Button color="primary" onClick={(event) => { handleReadBooks(event, likedBookRec[0]) }}>
+                    Mark read
+                  </Button>
+                </div>
+              </CardActions>
+            </Card>
+          </Grid >
+
+        ));
+
+        // Set the state of the genres list to the value returned by the HTTP response from the server.
+        setlikedRecBooks(
+          likedBookRecDivs
+        );
+
+      }, err => {
+        // Print the error if there is one.
+        console.log(err);
+      });
   }
 
   return (
     <div className={classes.root}>
       <CssBaseline />
-      <SideBar name='Recommended Books'/>
+      <SideBar name='Recommended Books' />
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <div className={classes.tabs}>
-      <AppBar position="static" color="default">
-        <Tabs
-          value={value}
-          onChange={handleChange}
-          indicatorColor="primary"
-          textColor="primary"
-          variant="fullWidth"
-          aria-label="full width tabs example"
-        >
-          <Tab label="Recommendation 1" {...a11yProps(0)} />
-          <Tab label="Recommendation 2" {...a11yProps(1)} />
-          <Tab label="Recommendation 3" {...a11yProps(2)} />
-        </Tabs>
-      </AppBar>
-      <SwipeableViews
-        axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
-        index={value}
-        onChangeIndex={handleChangeIndex}
-      >
+          <AppBar position="static" color="default">
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              indicatorColor="primary"
+              textColor="primary"
+              variant="fullWidth"
+              aria-label="full width tabs example"
+            >
+              <Tab label="Recommendation Based on Read Books" {...a11yProps(0)} />
+              <Tab label="Recommendation Based on Liked Books" {...a11yProps(1)} />
+              <Tab label="Recommendation From NY Times" {...a11yProps(2)} />
+            </Tabs>
+          </AppBar>
+          <SwipeableViews
+            axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
+            index={value}
+            onChangeIndex={handleChangeIndex}
+          >
+            {/* Recommendation 1 */}
+            <TabPanel value={value} index={0} dir={theme.direction}>
+              <Grid container spacing={2}>
+                {/* Book Cards */}
+                {readBookRec}
+              </Grid>
+            </TabPanel>
 
-        {/* Recommendation 1 */}
-        <TabPanel value={value} index={0} dir={theme.direction}>
-      
-          <Grid container spacing={2}> 
+            {/* Recommendation 2 */}
+            <TabPanel value={value} index={1} dir={theme.direction}>
+              <Grid container spacing={2}>
+                {likedBookRec}
+              </Grid>
+            </TabPanel>
 
-          {/* Book Cards */}
-          {/* Call showrecommendation1 here */}
-          < Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
-            <Card className={classes.card}>
-              <CardMedia className ={classes.cardMedia}
-                image={'https://s1.nyt.com/du/books/images/9781476746586.jpg'}
-              />
-              <CardContent className={classes.cardContent}>
-                <Typography gutterBottom variant="h5" component="h4">
-                TITLE PLACE HOLDER
-                </Typography>
-              </CardContent>
-              <CardActions style={{width:'100%'}}>
-              <Button size="medium" color="textSecondary">
-                  View
-              </Button>
-              <div style={{width: '100%', textAlign:'right'}}>  
-              <Button color="secondary" onClick={(event) => {handleLikedBooks(event, 'put isbn here')}}>
-               Like 
-              </Button>
-
-              <Button color="primary" onClick={(event) => {handleReadBooks(event, 'put isbn here')}}>
-                Mark read
-              </Button>
-              </div>              
-              </CardActions>
-            </Card>
-        </Grid >
-
-        < Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
-            <Card className={classes.card}>
-              <CardMedia className ={classes.cardMedia}
-                image={'https://s1.nyt.com/du/books/images/9781476746586.jpg'}
-              />
-              <CardContent className={classes.cardContent}>
-                <Typography gutterBottom variant="h5" component="h4">
-                TITLE PLACE HOLDER
-                </Typography>
-              </CardContent>
-              <CardActions style={{width:'100%'}}>
-              <Button size="medium" color="textSecondary">
-                  View
-              </Button>
-              <div style={{width: '100%', textAlign:'right'}}>  
-              <Button color="secondary" onClick={(event) => {handleLikedBooks(event, 'put isbn here')}}>
-               Like 
-              </Button>
-
-              <Button color="primary" onClick={(event) => {handleReadBooks(event, 'put isbn here')}}>
-                Mark read
-              </Button>
-              </div>       
-              </CardActions>
-            </Card>
-          </Grid >
-          </Grid>
-        </TabPanel>
-
-        {/* Recommendation 2 */}
-        <TabPanel value={value} index={1} dir={theme.direction}>    
-        <Grid container spacing={2}> 
-
-         {/* Book Cards */}
-         {/* Call showrecommendation2 here */}
-        </Grid>      
-        </TabPanel>
-
-
-
-        {/* Recommendation 3 */}
-        <TabPanel value={value} index={2} dir={theme.direction}>
-          <Grid container spacing={2}> 
-
-            {/* Book Cards */}
-            {/* Call showrecommendation3 here */}
-          
-        
-           </Grid>          
-        </TabPanel>        
-      </SwipeableViews>
-    </div>        
+            {/* Recommendation 3 */}
+            <TabPanel value={value} index={2} dir={theme.direction}>
+              <Grid container spacing={2}>
+                {nyTimesBookRec}
+              </Grid>
+            </TabPanel>
+          </SwipeableViews>
+        </div>
       </main>
     </div>
   );

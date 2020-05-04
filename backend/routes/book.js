@@ -7,9 +7,9 @@ router.get('/', (req, res) => getBooks(req, res));
 router.get('/search/title/:title', (req, res) => getBookForTitle(req, res));
 router.get('/search/isbn/:isbn', (req, res) => getBookForIsbn(req, res));
 router.get('/search/author/:author', (req, res) => getBookForAuthor(req, res));
-router.get('/recommended/nyauthor', (req, res) => getTopNYAuthorRec(req, res));
-router.get('/recommended/booksRead', (req, res) => getBooksReadRec(req, res));
-router.get('/recommended/booksLiked', (req, res) => getBooksLikedRec(req, res));
+router.get('/recommended/nyauthor/:email', (req, res) => getTopNYAuthorRec(req, res));
+router.get('/recommended/booksRead/:email', (req, res) => getBooksReadRec(req, res));
+router.get('/recommended/booksLiked/:email', (req, res) => getBooksLikedRec(req, res));
 router.get('/bestseller/publisher', (req, res) => getTopPublisher(req, res));
 router.get('/bestseller/publisher/:pubName', (req, res) => getTopNYPublishingBooks(req, res));
 router.get('/bestseller/nyauthor/:authorName', (req, res) => getTopNYAuthorBooks(req, res));
@@ -139,65 +139,82 @@ function getAuthors(req, res) {
  */
 function getBooksReadRec(req, res) {
 
+  const email = req.params.email;
+
   connection.then((con) => {
     // console.log(con);
     const sql = `
     WITH BookTemp AS
-    (SELECT isbn, rating FROM Books),
+    (
+      SELECT isbn, rating FROM Books
+    ),
     BookAuthorUC AS
     (
-    SELECT BookAuthor.authorid, bmain.isbn
-    FROM MemberChoices uc
-    INNER JOIN BookTemp bmain
-    ON bmain.isbn = uc.isbn
-    INNER JOIN BookAuthor
-    ON bmain.isbn = BookAuthor.isbn
-    ORDER BY bmain.rating desc
+      SELECT BookAuthor.authorid, bmain.isbn
+      FROM MemberChoices uc
+      INNER JOIN BookTemp bmain
+      ON bmain.isbn = uc.isbn
+      INNER JOIN BookAuthor
+      ON bmain.isbn = BookAuthor.isbn
+      ORDER BY bmain.rating desc
     ),
-    UCTemp AS (
-    SELECT uc.isbn
-    FROM MemberChoices uc
-    WHERE uc.email = 'harsh93@seas.upenn.edu'
-    AND uc.readflag = 1),
+    UCTemp AS
+    (
+      SELECT uc.isbn
+      FROM MemberChoices uc
+      WHERE uc.email = '${email}'
+      AND uc.readflag = 1
+    ),
     BooksSuggested AS 
     (
-    SELECT bma.isbn, bma.rating, BookAuthor.authorid
-    FROM BookTemp bma
-    INNER JOIN BookAuthor
-    ON bma.isbn= BookAuthor.isbn
-    INNER JOIN BookCategory bCat
-    ON bCat.isbn = bma.isbn
-    WHERE bma.isbn NOT IN 
-    (
+      SELECT bma.isbn, bma.rating, BookAuthor.authorid
+      FROM BookTemp bma
+      INNER JOIN BookAuthor
+      ON bma.isbn= BookAuthor.isbn
+      INNER JOIN BookCategory bCat
+      ON bCat.isbn = bma.isbn
+      WHERE bma.isbn NOT IN 
+      (
         SELECT * FROM UCTemp
-    )
-    AND bCat.categoryId IN
-    (
+      )
+      AND bCat.categoryId IN
+      (
         SELECT BookCategory.categoryId
         FROM  BookTemp
         INNER JOIN BookCategory
         ON BookTemp.isbn = BookCategory.isbn
         INNER JOIN UCTemp ON BookTemp.isbn = UCTemp.isbn
-    )
+      )
     ), 
-    Temp1 AS(
-    SELECT bs.isbn, bauc.authorid, bs.rating
-    FROM BooksSuggested bs
-    INNER JOIN BookAuthorUC bauc
-    ON bauc.isbn = bs.isbn
-    ORDER BY bauc.authorid DESC),
-    Temp2 AS 
-    (SELECT bs.isbn, bs.authorid, bs.rating
-    FROM BooksSuggested bs
-    WHERE bs.authorid NOT IN 
+    Temp1 AS
     (
+      SELECT bs.isbn, bauc.authorid, bs.rating
+      FROM BooksSuggested bs
+      INNER JOIN BookAuthorUC bauc
+      ON bauc.isbn = bs.isbn
+      ORDER BY bauc.authorid DESC
+    ),
+    
+    Temp2 AS 
+    (
+      SELECT bs.isbn, bs.authorid, bs.rating
+      FROM BooksSuggested bs
+      WHERE bs.authorid NOT IN 
+      (
         SELECT bauc.authorid
         FROM BookAuthorUC bauc
-    )
-    )
-    SELECT isbn FROM Temp1
-    UNION 
-    SELECT isbn FROM Temp2
+      )
+    ),
+    isbn_temp AS
+    (
+      SELECT isbn FROM Temp1
+      UNION 
+      SELECT isbn FROM Temp2
+    ) 
+    SELECT *
+    FROM isbn_temp INNER JOIN Books
+    ON books.isbn = isbn_temp.isbn
+    WHERE rownum <= 20
     `;
     con.execute(sql).then((response) => {
       console.log(response);
@@ -214,60 +231,63 @@ function getBooksReadRec(req, res) {
  */
 function getTopNYAuthorRec(req, res) {
 
+  const email = req.params.email;
+
   connection.then((con) => {
     // console.log(con);
-    const sql = `WITH NYAuthorTemp AS 
+    const sql = `
+    WITH NYAuthorTemp AS 
     (
-    select * from 
-    (
-    SELECT DISTINCT(bookauthor.authorid) as authorId, COUNT(*) AS count 
-    FROM (SELECT isbn FROM nytimesseller) NYT
-    INNER JOIN bookauthor
-    ON NYT.isbn = bookauthor.isbn
-    GROUP BY bookauthor.authorid
-    ORDER BY count DESC
-    )
-    where rownum <= 15
+      select * from 
+      (
+        SELECT DISTINCT(bookauthor.authorid) as authorId, COUNT(*) AS count 
+        FROM (SELECT isbn FROM nytimesseller) NYT
+        INNER JOIN bookauthor
+        ON NYT.isbn = bookauthor.isbn
+        GROUP BY bookauthor.authorid
+        ORDER BY count DESC
+      )
+      where rownum <= 15
     ),
     CategoryUC AS
     (
-    select * from
-    (
-    SELECT DISTINCT(b.categoryId) AS categories
-    FROM  BookCategory b
-    INNER JOIN MemberChoices ON MemberChoices.isbn = b.isbn
-    WHERE MemberChoices.email = 'harsh93@seas.upenn.edu'
-    )
+      select * from
+      (
+        SELECT DISTINCT(b.categoryId) AS categories
+        FROM  BookCategory b
+        INNER JOIN MemberChoices ON MemberChoices.isbn = b.isbn
+        WHERE MemberChoices.email = '${email}'
+      )
     ),
-    
     CombinedTemp AS
     (
-    SELECT DISTINCT Books.isbn  as isbn, books.title, BookAuthor.authorid, BookCategory.categoryid as categoryid, Books.rating
-    FROM Books
-    INNER JOIN BookAuthor 
-    ON BookAuthor.isbn = Books.isbn 
-    INNER JOIN BookCategory 
-    ON Books.isbn = BookCategory.isbn
+      SELECT DISTINCT Books.isbn  as isbn, books.title, BookAuthor.authorid, BookCategory.categoryid as categoryid, Books.rating
+      FROM Books
+      INNER JOIN BookAuthor 
+      ON BookAuthor.isbn = Books.isbn 
+      INNER JOIN BookCategory 
+      ON Books.isbn = BookCategory.isbn
     ),
-    
     BestSellingWithCategories AS
     (
-    SELECT bmain.authorid, COUNT(bmain.categoryid) AS count2
-    FROM CombinedTemp bmain
-    JOIN NYAuthorTemp ON NYAuthorTemp.authorId = bmain.authorId
-    JOIN CategoryUC ON CategoryUC.categories = bmain.categoryid
-    GROUP BY bmain.authorid 
-    HAVING COUNT(bmain.categoryid) >= 3
+      SELECT bmain.authorid, COUNT(bmain.categoryid) AS count2
+      FROM CombinedTemp bmain
+      JOIN NYAuthorTemp ON NYAuthorTemp.authorId = bmain.authorId
+      JOIN CategoryUC ON CategoryUC.categories = bmain.categoryid
+      GROUP BY bmain.authorid 
+      HAVING COUNT(bmain.categoryid) >= 3
     )
-    SELECT * FROM (
-    SELECT bs.isbn, bs.title
-    FROM CombinedTemp bs
-    WHERE bs.authorId IN (SELECT authorid FROM BestsellingWithCategories)
-    AND  bs.isbn NOT IN 
-      (SELECT uc.isbn
-      FROM MemberChoices uc
-      WHERE uc.email = 'harsh93@seas.upenn.edu')
-    ORDER BY bs.rating DESC)`;
+    SELECT * FROM
+    (
+      SELECT bs.*
+      FROM CombinedTemp bs
+      WHERE bs.authorId IN (SELECT authorid FROM BestsellingWithCategories)
+      AND  bs.isbn NOT IN (SELECT uc.isbn
+                           FROM MemberChoices uc
+                           WHERE uc.email = '${email}')
+      ORDER BY bs.rating DESC)
+      WHERE rownum < 21`;
+
     con.execute(sql).then((response) => {
       console.log(response);
       res.json(response);
@@ -278,64 +298,81 @@ function getTopNYAuthorRec(req, res) {
 
 function getBooksLikedRec(req, res) {
 
+  const email = req.params.email;
+
   connection.then((con) => {
     const sql = `
     WITH BookTemp AS
-    (SELECT isbn, rating FROM Books),
+    (
+      SELECT isbn, rating
+      FROM Books
+    ),
     BookAuthorUC AS
     (
-    SELECT BookAuthor.authorid, bmain.isbn
-    FROM MemberChoices uc
-    INNER JOIN BookTemp bmain
-    ON bmain.isbn = uc.isbn
-    INNER JOIN BookAuthor
-    ON bmain.isbn = BookAuthor.isbn
-    ORDER BY bmain.rating desc
+      SELECT BookAuthor.authorid, bmain.isbn
+      FROM MemberChoices uc
+      INNER JOIN BookTemp bmain
+      ON bmain.isbn = uc.isbn
+      INNER JOIN BookAuthor
+      ON bmain.isbn = BookAuthor.isbn
+      ORDER BY bmain.rating desc
     ),
-    UCTemp AS (
-    SELECT uc.isbn
-    FROM MemberChoices uc
-    WHERE uc.email = 'harsh93@seas.upenn.edu'
-    AND uc.likeflag = 1),
+    UCTemp AS
+    (
+      SELECT uc.isbn
+      FROM MemberChoices uc
+      WHERE uc.email = '${email}'
+      AND uc.likeflag = 1
+    ),
     BooksSuggested AS 
     (
-    SELECT bma.isbn, bma.rating, BookAuthor.authorid
-    FROM BookTemp bma
-    INNER JOIN BookAuthor
-    ON bma.isbn= BookAuthor.isbn
-    INNER JOIN BookCategory bCat
-    ON bCat.isbn = bma.isbn
-    WHERE bma.isbn NOT IN 
-    (
+      SELECT bma.isbn, bma.rating, BookAuthor.authorid
+      FROM BookTemp bma
+      INNER JOIN BookAuthor
+      ON bma.isbn= BookAuthor.isbn
+      INNER JOIN BookCategory bCat
+      ON bCat.isbn = bma.isbn
+      WHERE bma.isbn NOT IN 
+      (
         SELECT * FROM UCTemp
-    )
-    AND bCat.categoryId IN
-    (
+      )
+      AND bCat.categoryId IN
+      (
         SELECT BookCategory.categoryId
         FROM  BookTemp
         INNER JOIN BookCategory
         ON BookTemp.isbn = BookCategory.isbn
         INNER JOIN UCTemp ON BookTemp.isbn = UCTemp.isbn
-    )
+      )
     ), 
-    Temp1 AS(
-    SELECT bs.isbn, bauc.authorid, bs.rating
-    FROM BooksSuggested bs
-    INNER JOIN BookAuthorUC bauc
-    ON bauc.isbn = bs.isbn
-    ORDER BY bauc.authorid DESC),
-    Temp2 AS 
-    (SELECT bs.isbn, bs.authorid, bs.rating
-    FROM BooksSuggested bs
-    WHERE bs.authorid NOT IN 
+    Temp1 AS
     (
+      SELECT bs.isbn, bauc.authorid, bs.rating
+      FROM BooksSuggested bs
+      INNER JOIN BookAuthorUC bauc
+      ON bauc.isbn = bs.isbn
+      ORDER BY bauc.authorid DESC
+    ),
+    Temp2 AS 
+    (
+      SELECT bs.isbn, bs.authorid, bs.rating
+      FROM BooksSuggested bs
+      WHERE bs.authorid NOT IN 
+      (
         SELECT bauc.authorid
         FROM BookAuthorUC bauc
+      )
+    ),
+    isbn_temp AS
+    (
+      SELECT isbn FROM Temp1
+      UNION 
+      SELECT isbn FROM Temp2  
     )
-    )
-    SELECT isbn FROM Temp1
-    UNION 
-    SELECT isbn FROM Temp2
+    SELECT *
+    FROM books INNER JOIN isbn_temp
+    ON books.isbn = isbn_temp.isbn
+    WHERE rownum <=20    
     `;
     con.execute(sql).then((response) => {
       console.log(response);
@@ -514,7 +551,7 @@ function getMoviesThatBestSeller(req, res) {
  * Display based on category name- how to create sub section on a page
  */
 function getTopCategories(req, res) {
- 
+
   connection.then((con) => {
     const sql = ` \WITH temp AS
     (SELECT B.isbn, BookCategory.categoryId FROM
@@ -535,9 +572,9 @@ function getTopCategories(req, res) {
     })
   });
 }
- 
- 
- 
+
+
+
 /**
  *15) Displays all books written by NYTimes best selling authors 
  for a certain category chosen- catgeoryName
@@ -547,7 +584,7 @@ function getTopCategories(req, res) {
 function getTopCategoryAuthorNY(req, res) {
   var inputcategory = req.params.categoryName;
   // console.log(inputcategory);
-  inputcategory= inputcategory.replace("\'", "\'\'");
+  inputcategory = inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = ` WITH NYAuthorTemp AS
     (
@@ -589,9 +626,9 @@ function getTopCategoryAuthorNY(req, res) {
     })
   });
 }
- 
- 
- 
+
+
+
 /**
  * 17) Displays books in a category such that they-categoryName
  *  are highly rated by users
@@ -599,8 +636,8 @@ function getTopCategoryAuthorNY(req, res) {
  */
 function getTopCategoryRated(req, res) {
   var inputcategory = req.params.categoryName;
-  console.log("in ratedL"+inputcategory);
-  inputcategory= inputcategory.replace("\'", "\'\'");
+  console.log("in ratedL" + inputcategory);
+  inputcategory = inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = ` WITH bookC AS
     (SELECT Books.*, BookCategory.categoryid
@@ -623,8 +660,8 @@ bookC.publisher, bookC.publication_place, bookC.publication_date, bookC.rating, 
     })
   });
 }
- 
- 
+
+
 /**
  * 18)Displays books in a certain category-categoryName published 
  * by the best selling NYTimes publishing house
@@ -634,7 +671,7 @@ bookC.publisher, bookC.publication_place, bookC.publication_date, bookC.rating, 
 function getTopCategoryPublisher(req, res) {
   var inputcategory = req.params.categoryName;
   console.log("in publisher" + inputcategory);
-  inputcategory= inputcategory.replace("\'", "\'\'");
+  inputcategory = inputcategory.replace("\'", "\'\'");
   connection.then((con) => {
     const sql = `WITH BookPub AS 
     (SELECT Books.isbn, Books.publisher FROM Books),
