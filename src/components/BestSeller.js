@@ -62,6 +62,18 @@ const useStyles = makeStyles((theme) => ({
     height: 500,
     // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
     transform: 'translateZ(0)',
+
+    '&::-webkit-scrollbar': {
+      width: '0.4em'
+    },
+    '&::-webkit-scrollbar-track': {
+      boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+      webkitBoxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: 'rgba(0,0,0,.1)',
+      outline: '1px solid slategrey'
+    }
   },
   titleBar: {
     background:
@@ -141,6 +153,11 @@ const useStyles = makeStyles((theme) => ({
   fixedHeight: {
     height: 240,
   },
+  tile: {
+    "&:hover": {
+      cursor: 'pointer'
+    }
+  }
 }));
 
 var ratings = [];
@@ -337,7 +354,7 @@ export default function BestSeller() {
 
         let authBookDivs = authBookList.rows.map((authBookItem, i) => (
           ratings.push(authBookItem[14]),
-          <GridListTile item key={i} style={{ height: '300px', width: '160px' }} onClick={() => handleListItemClick(authBookItem, i)}>
+          <GridListTile className={classes.tile} item key={i} style={{ height: '300px', width: '160px' }} onClick={() => handleListItemClick(authBookItem, i)}>
             <img src={authBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : authBookItem[2]} alt={authBookItem[1]} style={{ height: '300px', width: '160px' }} />
             <GridListTileBar
               title={authBookItem[1]}
@@ -382,7 +399,7 @@ export default function BestSeller() {
         ratings = [];
 
         let pubBookDivs = pubBookList.rows.map((pubBookItem, i) => (
-          <GridListTile item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(pubBookItem, i)}>
+          <GridListTile className = {classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(pubBookItem, i)}>
             <img src={pubBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : pubBookItem[2]} alt={pubBookItem[1]} style={{ height: '240px', width: '160px' }} />
             <GridListTileBar
               title={pubBookItem[1]}
@@ -426,7 +443,7 @@ export default function BestSeller() {
         ratings = [];
 
         let newBookDivs = newBookList.rows.map((newBookItem, i) => (
-          <GridListTile item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(newBookItem, i)}>
+          <GridListTile className = {classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(newBookItem, i)}>
             <img src={newBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : newBookItem[2]} alt={newBookItem[1]} style={{ height: '240px', width: '160px' }} />
             <GridListTileBar
               title={newBookItem[1]}
@@ -620,7 +637,9 @@ export default function BestSeller() {
                           </TableCell>
                           <TableCell align="left" >
                             <Typography variant="h9">
-                              <a href={selectedBook[4] ? selectedBook[4] : ''} target={'_blank'}>{selectedBook[4]}</a>
+                            {
+                     <a href={selectedBook[4] ? (selectedBook[4].includes('http')  ? selectedBook[4] : "https://www.bookdepository.com" + selectedBook[4] ) : ''} target={'_blank'}>{selectedBook[4] ? (selectedBook[4].includes('http')  ? selectedBook[4] : "https://www.bookdepository.com" + selectedBook[4] ) : ''}</a>
+                      }
                             </Typography>
                           </TableCell>
                           <TableCell align="left" >

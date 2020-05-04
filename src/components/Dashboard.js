@@ -53,6 +53,18 @@ const useStyles = makeStyles((theme) => ({
     height: 500,
     // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
     transform: 'translateZ(0)',
+
+    '&::-webkit-scrollbar': {
+      width: '0.4em'
+    },
+    '&::-webkit-scrollbar-track': {
+      boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+      webkitBoxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: 'rgba(0,0,0,.1)',
+      outline: '1px solid slategrey'
+    }
   },
   toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
@@ -127,6 +139,11 @@ const useStyles = makeStyles((theme) => ({
   fixedHeight: {
     height: 240,
   },
+  tile: {
+    "&:hover": {
+      cursor: 'pointer'
+    }
+  }
 }));
 
 var ratings = [];
@@ -234,7 +251,7 @@ export default function Dashboard() {
         console.log(readBookList);
 
         let readBookDivs = readBookList.rows.map((readBookItem, i) => (
-          <GridListTile item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(readBookItem, i)}>
+          <GridListTile className={classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(readBookItem, i)}>
             <img src={readBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : readBookItem[2]} alt={readBookItem[1]} style={{ height: '240px', width: '160px' }} />
             <GridListTileBar
               title={readBookItem[1]}
@@ -274,7 +291,7 @@ export default function Dashboard() {
         console.log(pubBookList);
 
         let likedBookDivs = pubBookList.rows.map((likedBookItem, i) => (
-          <GridListTile item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(likedBookItem, i)}>
+          <GridListTile className={classes.tile} item key={i} style={{ height: '240px', width: '160px' }} onClick={() => handleListItemClick(likedBookItem, i)}>
             <img src={likedBookItem[2] === null ? 'https://i.imgur.com/sJ3CT4V.gif' : likedBookItem[2]} alt={likedBookItem[1]} style={{ height: '240px', width: '160px' }} />
             <GridListTileBar
               title={likedBookItem[1]}

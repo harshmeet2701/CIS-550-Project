@@ -780,9 +780,9 @@ export default function Search() {
                   <TableCell align="left" >
                     <Typography variant="h9">
                      {/* Selected URL */}
-                     
-                     <a href={selectedBook[4] ? selectedBook[4]: ''} target={'_blank'}>{selectedBook[4]}</a>
-
+                     {
+                     <a href={selectedBook[4] ? (selectedBook[4].includes('http')  ? selectedBook[4] : "https://www.bookdepository.com" + selectedBook[4] ) : ''} target={'_blank'}>{selectedBook[4] ? (selectedBook[4].includes('http')  ? selectedBook[4] : "https://www.bookdepository.com" + selectedBook[4] ) : ''}</a>
+                      }
                     </Typography>
                   </TableCell>
 

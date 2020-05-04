@@ -190,7 +190,7 @@ export default function Dashboard() {
           console.log(movie[2]),
           console.log(movie[3]),
           console.log(movie[4]),
-          rows.push(createData(movie[0], movie[1], movie[2], movie[3], movie[4], "https://www.bookdepository.com" + movie[5]))
+          rows.push(createData(movie[0], movie[1], movie[2], movie[3], movie[4], <a href= {"https://www.bookdepository.com" + movie[5]} target={'_blank'}>{"https://www.bookdepository.com" + movie[5]}</a>))
         ));
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
