@@ -145,7 +145,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -183,9 +182,9 @@ function a11yProps(index) {
   };
 }
 
-var ratings = [];
-var ratingsRead = [];
-var ratingsLike = [];
+var ratingsRec1 = [];
+var ratingsRec2 = [];
+var ratingsRec3 = [];
 
 export default function Recommendation() {
   const classes = useStyles();
@@ -206,11 +205,11 @@ export default function Recommendation() {
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
-    if (newValue == 1) {
+    if (newValue === 1) {
       showrecommendationLiked();
-    } else if (newValue == 2) {
+    } else if (newValue === 2) {
       showrecommendationNyTimes();
-    } else if (newValue == 0) {
+    } else if (newValue === 0) {
       showrecommendationRead();
     }
   };
@@ -230,14 +229,21 @@ export default function Recommendation() {
   };
 
   const saveRating = (isbn) => {
-    console.log('Sel Rating:', selectedrating);
-    if (type === 'read') {
-      ratingsRead[index] = selectedrating;
-    } else if (type === 'like') {
-      ratingsLike[index] = selectedrating;
-    }
-    console.log('Ratings:', ratingsRead[index]);
 
+    console.log('Sel Rating:', selectedrating);
+    
+    if (type === 'rec1') {
+      console.log('Rating bef:', ratingsRec1[index]);
+      ratingsRec1[index] = selectedrating;
+      console.log('Rating afte:', ratingsRec1[index]);
+    } else if (type === 'rec2') {
+      ratingsRec2[index] = selectedrating;
+    } else if (type === "rec3") {
+      ratingsRec3[index] = selectedrating;
+    }
+    // console.log('Ratings:', ratingsRec1[index]);
+    // console.log('Index:', index);
+    // console.log('Ratings:', ratingsRec2[index]);    
     fetch('http://localhost:8081/api/user/rateBook/' + isbn, {
       method: 'POST',
       headers: {
@@ -263,11 +269,20 @@ export default function Recommendation() {
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
   // Function when view is clicked
-  const handleListItemClick = (book, index) => {
+  const handleListItemClick = (book, index, rectype) => {
     getAuthors(book[0]);
     setSelBook(book);
     setIndex(index);
-    setRating(ratings[index]);
+    setType(rectype);
+    
+    if(rectype === 'rec1') {
+      setRating(ratingsRec1[index]);
+      console.log('R1', ratingsRec1[index]);
+    } else if (rectype === 'rec2') {
+      setRating(ratingsRec2[index]);
+    } else if (rectype === 'rec3') {
+      setRating(ratingsRec3[index]);
+    }
     setOpenDailogue(true);
   };
 
@@ -385,8 +400,12 @@ export default function Recommendation() {
       }).then(readBookRecList => {
         if (!readBookRecList) return;
         console.log(readBookRecList);
+        ratingsRec1 = []
 
-        let readBookRecDivs = readBookRecList.rows.map((readBookRec, i) => (
+        let readBookRecDivs = readBookRecList.rows.map((readBookRec, i) => {
+          ratingsRec1.push(0);
+        
+          return(
           // 0 - 1 - ISBN
           // 2 - Title, 3 - Desc , 4 -URL, 5 - IMG_URL, 6 - Publisher, 7 - Publisher Date, 8 - Publishing Place, 9 - Rating
           // 10 - Format_name, 11 - NUM_Pages, 12 - Lang, 13- Ages
@@ -401,7 +420,7 @@ export default function Recommendation() {
                 </Typography>
               </CardContent>
               <CardActions style={{ width: '100%' }}>
-                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick(readBookRec, i)}>
+                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick(readBookRec, i, "rec1")}>
                   View
               </Button>
                 <div style={{ width: '100%', textAlign: 'right' }}>
@@ -409,14 +428,16 @@ export default function Recommendation() {
                     Like
                   </Button>
                   <Button color="primary" onClick={(event) => { handleReadBooks(event, readBookRec[0]) }}>
-                    Mark read
+                    Mark Read
                   </Button>
                 </div>
               </CardActions>
             </Card>
           </Grid >
 
-        ));
+        )
+        
+        });
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
         setreadRecBooks(
@@ -443,9 +464,11 @@ export default function Recommendation() {
       }).then(nyTimesBookRecList => {
         if (!nyTimesBookRecList) return;
         console.log(nyTimesBookRecList);
-        ratingsLike = []
+        ratingsRec3 = []
 
-        let nyTimesBookRecDivs = nyTimesBookRecList.rows.map((nyTimesBookRec, i) => (
+        let nyTimesBookRecDivs = nyTimesBookRecList.rows.map((nyTimesBookRec, i) => {
+          ratingsRec3.push(0);
+          return (
           <Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
             <Card className={classes.card}>
               <CardMedia className={classes.cardMedia}
@@ -457,7 +480,7 @@ export default function Recommendation() {
                 </Typography>
               </CardContent>
               <CardActions style={{ width: '100%' }}>
-                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick(nyTimesBookRec, i)}>
+                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick(nyTimesBookRec, i, "rec3")}>
                   View
               </Button>
                 <div style={{ width: '100%', textAlign: 'right' }}>
@@ -471,8 +494,8 @@ export default function Recommendation() {
               </CardActions>
             </Card>
           </Grid >
-
-        ));
+        )
+      });
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
         setnyTimesRecBooks(
@@ -499,8 +522,11 @@ export default function Recommendation() {
       }).then(likedBookRecList => {
         if (!likedBookRecList) return;
         console.log(likedBookRecList);
+        ratingsRec2 = []
 
-        let likedBookRecDivs = likedBookRecList.rows.map((likedBookRec, i) => (
+        let likedBookRecDivs = likedBookRecList.rows.map((likedBookRec, i) => {
+          ratingsRec2.push(0);
+          return (
           <Grid item key={1} xs={3} style={{ height: '400px', width: '180px' }}>
             <Card className={classes.card}>
               <CardMedia className={classes.cardMedia}
@@ -512,7 +538,7 @@ export default function Recommendation() {
                 </Typography>
               </CardContent>
               <CardActions style={{ width: '100%' }}>
-                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick(likedBookRec, i)}>
+                <Button size="medium" color="textSecondary" onClick={() => handleListItemClick(likedBookRec, i, "rec2")}>
                   View
               </Button>
                 <div style={{ width: '100%', textAlign: 'right' }}>
@@ -527,7 +553,8 @@ export default function Recommendation() {
             </Card>
           </Grid >
 
-        ));
+        )
+        });
 
         // Set the state of the genres list to the value returned by the HTTP response from the server.
         setlikedRecBooks(

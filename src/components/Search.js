@@ -430,7 +430,8 @@ export default function Search() {
         if (!bookList) return;
         // console.log(bookList);
         ratings = [];
-        
+        console.log(bookList);
+                
         let bookDivs = bookList.rows.map((book, i) => {
           ratings.push(book[14]);
           return (

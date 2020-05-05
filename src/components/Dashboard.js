@@ -440,7 +440,7 @@ export default function Dashboard() {
                           </TableCell>
                           <TableCell align="left" >
                             <Typography variant="h6">
-                              {selectedBook[9]}
+                              {selectedBook[10]}
                             </Typography>
                           </TableCell>
                         </TableRow>
@@ -464,27 +464,35 @@ export default function Dashboard() {
                           </TableCell>
                           <TableCell align="left" >
                             <Typography variant="h6">
-                              {selectedBook[10]}
+                              {selectedBook[11]}
                             </Typography>
                           </TableCell>
                         </TableRow>
 
                         <TableRow>
                           <TableCell align="left" style={{ width: '5em' }}>
-                            <Typography variant="h5" component="h1">
-                              URL
-                    </Typography>
+                              <Typography variant="h5" component="h1">
+                                URL
+                             </Typography>
                           </TableCell>
                           <TableCell align="left" >
                             <Typography variant="h9">
-                              <a href={selectedBook[4] ? selectedBook[4] : ''} target={'_blank'}>{selectedBook[4]}</a>
+                            {
+                          <a href={selectedBook[3] ? (selectedBook[3].includes('http')  ? selectedBook[3] : "https://www.bookdepository.com" + selectedBook[3] ) : ''} target={'_blank'}>{selectedBook[3] ? (selectedBook[3].includes('http')  ? selectedBook[3] : "https://www.bookdepository.com" + selectedBook[3] ) : ''}</a>
+                            }
                             </Typography>
                           </TableCell>
-                          <TableCell align="left" >
-                            <Typography variant="h6">
-                              {selectedBook[11]}
-                            </Typography>
+                          
+                          <TableCell align="left">
+                          <Typography variant="h5" component="h1">
+                            Ages: 
+                          </Typography>
                           </TableCell>
+                        <TableCell align="left" >
+                          <Typography variant="h6">
+                            {selectedBook[12]}
+                          </Typography>
+                        </TableCell>
                         </TableRow>
 
 
@@ -536,7 +544,7 @@ export default function Dashboard() {
                           <TableCell align="left" >
                             {/* Selected Place */}
                             <Typography variant="h7">
-                              {selectedBook[6]}
+                              {selectedBook[7]}
                             </Typography>
                           </TableCell>
                         </TableRow>
@@ -550,7 +558,7 @@ export default function Dashboard() {
                           <TableCell align="left" >
                             {/* Selected ISBN */}
                             <Typography variant="h6">
-                              {selectedBook[7]}
+                              {selectedBook[6]}
                             </Typography>
                           </TableCell>
                         </TableRow>

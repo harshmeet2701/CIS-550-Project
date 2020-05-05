@@ -252,6 +252,7 @@ function likeBook(req, res) {
     const email = req.body.email;
     const isbn = req.params.isbn;
     const identifier = req.body.id;
+    console.log(identifier);
 
     const sql = `UPDATE MemberChoices SET likeFlag='${identifier}' WHERE email='${email}' and isbn='${isbn}'`;
 

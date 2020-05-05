@@ -164,7 +164,7 @@ export default function SignInSide() {
       // console.log(resp);
       if (resp.message === 'success'){
         // Update context
-        console.log(auth);
+        // console.log(auth);
         dispatch(login(resp.email));
         // Session / Cache storage if Remember me
         const curr = new Date();
