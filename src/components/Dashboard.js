@@ -453,7 +453,7 @@ export default function Dashboard() {
                           </TableCell>
                           <TableCell align="left" >
                             <Typography variant="h7">
-                              {selectedBook[3]}
+                              {selectedBook[2]}
                             </Typography>
                           </TableCell>
 
@@ -471,31 +471,29 @@ export default function Dashboard() {
 
                         <TableRow>
                           <TableCell align="left" style={{ width: '5em' }}>
-                              <Typography variant="h5" component="h1">
-                                URL
+                            <Typography variant="h5" component="h1">
+                              URL
                              </Typography>
                           </TableCell>
                           <TableCell align="left" >
                             <Typography variant="h9">
-                            {
-                          <a href={selectedBook[3] ? (selectedBook[3].includes('http')  ? selectedBook[3] : "https://www.bookdepository.com" + selectedBook[3] ) : ''} target={'_blank'}>{selectedBook[3] ? (selectedBook[3].includes('http')  ? selectedBook[3] : "https://www.bookdepository.com" + selectedBook[3] ) : ''}</a>
-                            }
+                              {
+                                <a href={selectedBook[3] ? (selectedBook[3].includes('http') ? selectedBook[3] : "https://www.bookdepository.com" + selectedBook[3]) : ''} target={'_blank'}>{selectedBook[3] ? (selectedBook[3].includes('http') ? selectedBook[3] : "https://www.bookdepository.com" + selectedBook[3]) : ''}</a>
+                              }
                             </Typography>
                           </TableCell>
-                          
+
                           <TableCell align="left">
-                          <Typography variant="h5" component="h1">
-                            Ages: 
+                            <Typography variant="h5" component="h1">
+                              Ages:
                           </Typography>
                           </TableCell>
-                        <TableCell align="left" >
-                          <Typography variant="h6">
-                            {selectedBook[12]}
-                          </Typography>
-                        </TableCell>
+                          <TableCell align="left" >
+                            <Typography variant="h6">
+                              {selectedBook[12]}
+                            </Typography>
+                          </TableCell>
                         </TableRow>
-
-
                         <TableRow>
                           <TableCell align="left" style={{ width: '5em' }}>
                             <Typography variant="h5" component="h1">
