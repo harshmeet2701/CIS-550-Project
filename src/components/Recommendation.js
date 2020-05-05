@@ -488,7 +488,7 @@ export default function Recommendation() {
                     Like
                   </Button>
                   <Button color="primary" onClick={(event) => { handleReadBooks(event, nyTimesBookRec[0]) }}>
-                    Mark read
+                    Mark Read
                   </Button>
                 </div>
               </CardActions>
@@ -546,7 +546,7 @@ export default function Recommendation() {
                     Like
                   </Button>
                   <Button color="primary" onClick={(event) => { handleReadBooks(event, likedBookRec[0]) }}>
-                    Mark read
+                    Mark Read
                   </Button>
                 </div>
               </CardActions>
