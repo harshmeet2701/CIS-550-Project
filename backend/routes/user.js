@@ -366,7 +366,7 @@ function rateBook(req, res) {
   connection.then((con) => {
     const email = req.body.email;
     const isbn = req.params.isbn;
-    const rating = req.body.rating;
+    const rating = req.body.rating ? req.body.rating  : 0;
 
     const sql = `UPDATE MemberChoices SET rating='${rating}' WHERE email='${email}' and isbn='${isbn}'`;
 
@@ -380,7 +380,7 @@ function rateBook(req, res) {
         
         if(rows.rowsAffected === 0){
           // Insert Entry
-          const insertSql = `INSERT INTO MemberChoices (email, isbn, rating) VALUES ('${email}', '${isbn}', '${rating}')`;
+          const insertSql = `INSERT INTO MemberChoices (email, isbn, rating) VALUES ('${email}', '${isbn}', ${rating})`;
 
           con.execute(insertSql, {}, {autoCommit: true}, function (err, rows) {
             if(err) {
