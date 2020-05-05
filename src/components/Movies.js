@@ -28,11 +28,12 @@ const columns = [
   { id: 'bookTitle', label: 'Book Title', minWidth: 120 },
   { id: 'bookAuthor', label: 'Author', minWidth: 70 },
   { id: 'movieTitle', label: 'Movie Title', minWidth: 120 },
+  { id: 'movieYear', label: 'Movie Release Year', minWidth: 50 },
   { id: 'bookUrl', label: 'Book URL', minWidth: 70 },
 ];
 
-function createData(isbn, bookTitle, bookAuthor, movieTitle, bookUrl) {
-  return { isbn, bookTitle, bookAuthor, movieTitle, bookUrl };
+function createData(isbn, bookTitle, bookAuthor, movieTitle, movieYear, bookUrl) {
+  return { isbn, bookTitle, bookAuthor, movieTitle, movieYear, bookUrl };
 }
 
 const rows = [];
