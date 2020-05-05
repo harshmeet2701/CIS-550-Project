@@ -18,8 +18,7 @@ All the frontend code is written in src folder. and server code is written in ba
 1. Run npm start
 2. Go to http://localhost:3000/
 
-
-# Required Dependencies:
+# Required Installation Dependencies:
 1. npm install @material-ui/core
 2. npm install @material-ui/icons
 3. npm install --save react-router-dom
