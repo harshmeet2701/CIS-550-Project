@@ -213,18 +213,12 @@ function getBooksReadRec(req, res) {
       ON bmain.isbn = uc.isbn
       INNER JOIN BookAuthor
       ON bmain.isbn = BookAuthor.isbn
-      ORDER BY bmain.rating desc
-    ),
-    UCTemp AS
-    (
-      SELECT uc.isbn
-      FROM MemberChoices uc
       WHERE uc.email = '${email}'
       AND uc.readflag = 1
     ),
     BooksSuggested AS 
     (
-      SELECT bma.isbn, bma.rating, BookAuthor.authorid
+      SELECT distinct bma.isbn, bma.rating, BookAuthor.authorid
       FROM BookTemp bma
       INNER JOIN BookAuthor
       ON bma.isbn= BookAuthor.isbn
@@ -232,7 +226,7 @@ function getBooksReadRec(req, res) {
       ON bCat.isbn = bma.isbn
       WHERE bma.isbn NOT IN 
       (
-        SELECT * FROM UCTemp
+        SELECT isbn FROM BookAuthorUC
       )
       AND bCat.categoryId IN
       (
@@ -240,38 +234,25 @@ function getBooksReadRec(req, res) {
         FROM  BookTemp
         INNER JOIN BookCategory
         ON BookTemp.isbn = BookCategory.isbn
-        INNER JOIN UCTemp ON BookTemp.isbn = UCTemp.isbn
+        INNER JOIN BookAuthorUC 
+        ON BookTemp.isbn = BookAuthorUC.isbn
       )
-    ), 
-    Temp1 AS
-    (
-      SELECT bs.isbn, bauc.authorid, bs.rating
-      FROM BooksSuggested bs
-      INNER JOIN BookAuthorUC bauc
-      ON bauc.isbn = bs.isbn
-      ORDER BY bauc.authorid DESC
     ),
-    
-    Temp2 AS 
+    isbn_temp AS 
     (
-      SELECT bs.isbn, bs.authorid, bs.rating
+      SELECT bs.isbn
       FROM BooksSuggested bs
       WHERE bs.authorid NOT IN 
       (
         SELECT bauc.authorid
         FROM BookAuthorUC bauc
       )
-    ),
-    isbn_temp AS
-    (
-      SELECT isbn FROM Temp1
-      UNION 
-      SELECT isbn FROM Temp2
-    ) 
-    SELECT books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages
+      ORDER BY bs.rating DESC
+    )
+    SELECT distinct books.isbn, books.title, books.img_url, books.description, books.url, books.publisher, books.publication_place, books.publication_date, books.rating, books.num_pages, books.lang, books.ages
     FROM isbn_temp INNER JOIN Books
     ON books.isbn = isbn_temp.isbn
-    WHERE rownum <= 20
+    where rownum <= 20
     `;
     con.execute(sql).then((response) => {
       console.log(response);
@@ -382,6 +363,7 @@ function getBooksLikedRec(req, res) {
       ON bmain.isbn = uc.isbn
       INNER JOIN BookAuthor
       ON bmain.isbn = BookAuthor.isbn
+      WHERE uc.email = '${email}'
     ),
     UCTemp AS
     (
